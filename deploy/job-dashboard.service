@@ -1,0 +1,29 @@
+[Unit]
+Description=Job Dashboard (Hermes agents)
+After=network.target
+
+[Service]
+Type=simple
+User=jobdash
+Group=jobdash
+WorkingDirectory=/opt/job-dashboard
+ExecStart=/opt/job-dashboard/runtime/node /opt/job-dashboard/node_modules/tsx/dist/cli.mjs server/index.ts
+Restart=on-failure
+RestartSec=3
+# fișierele create (baza, WAL) sunt lizibile doar de jobdash
+UMask=0077
+
+# izolare: codul rulează ca utilizator dedicat și scrie doar în data/
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/job-dashboard/data
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

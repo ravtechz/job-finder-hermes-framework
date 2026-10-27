@@ -1,0 +1,13 @@
+[Unit]
+Description=Job Dashboard (Hermes agents)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ravtech/job-dashboard
+ExecStart=/home/ravtech/.local/bin/node /home/ravtech/job-dashboard/node_modules/tsx/dist/cli.mjs server/index.ts
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

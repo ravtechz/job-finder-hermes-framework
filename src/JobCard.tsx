@@ -1,0 +1,223 @@
+import { useState, type ReactNode } from 'react'
+import { fetchJob, reevaluateJob } from './api'
+import type { Job, Remote, ScoreBreakdown, Status, Verdict } from './types'
+
+const VERDICT_STYLE: Record<Verdict, string> = {
+  APPLY: 'bg-emerald-600 text-white',
+  MAYBE: 'bg-amber-500 text-white',
+  SKIP: 'bg-slate-500 text-white',
+}
+const SCORE_STYLE: Record<Verdict, string> = {
+  APPLY: 'text-emerald-600 dark:text-emerald-400',
+  MAYBE: 'text-amber-600 dark:text-amber-400',
+  SKIP: 'text-slate-500 dark:text-slate-400',
+}
+const REMOTE_LABEL: Record<Remote, string> = { remote: 'Remote', hybrid: 'Hibrid', onsite: 'La birou', unknown: 'Remote necunoscut' }
+const STATUS_LABEL: Record<Status, string> = { new: 'Nou', seen: 'Văzut', applied: 'Aplicat', ignored: 'Ignorat' }
+
+const AGENTS = {
+  durian: { name: 'Durian Popa', role: 'Găsește joburi', initials: 'DP', box: 'border-fuchsia-300 bg-fuchsia-50 dark:border-fuchsia-800 dark:bg-fuchsia-950/40', avatar: 'bg-fuchsia-600', title: 'text-fuchsia-700 dark:text-fuchsia-300' },
+  vadim: { name: 'Vadim Sudor', role: 'Evaluează', initials: 'VS', box: 'border-indigo-300 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/40', avatar: 'bg-indigo-600', title: 'text-indigo-700 dark:text-indigo-300' },
+  tzanca: { name: 'Tzanca Ciocanu', role: 'Ajustează CV-ul', initials: 'TC', box: 'border-teal-300 bg-teal-50 dark:border-teal-800 dark:bg-teal-950/40', avatar: 'bg-teal-600', title: 'text-teal-700 dark:text-teal-300' },
+}
+
+function AgentSection({ agent, children }: { agent: keyof typeof AGENTS; children: ReactNode }) {
+  const a = AGENTS[agent]
+  return (
+    <section className={`rounded-xl border p-3 ${a.box}`}>
+      <div className="mb-2 flex items-center gap-2">
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${a.avatar}`}>{a.initials}</span>
+        <div className="leading-tight">
+          <div className={`text-sm font-semibold ${a.title}`}>{a.name}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">{a.role}</div>
+        </div>
+      </div>
+      <div className="space-y-2 text-sm">{children}</div>
+    </section>
+  )
+}
+
+function List({ label, items, tone }: { label: string; items: string[]; tone?: string }) {
+  if (!items.length) return null
+  return (
+    <div>
+      <div className={`text-xs font-semibold uppercase tracking-wide ${tone ?? 'text-slate-500 dark:text-slate-400'}`}>{label}</div>
+      <ul className="ml-4 list-disc space-y-0.5">{items.map((x, i) => <li key={i}>{x}</li>)}</ul>
+    </div>
+  )
+}
+
+const Quote = ({ text }: { text: string }) => (
+  <p className="rounded-lg bg-white/60 px-3 py-2 italic dark:bg-black/20">„{text}”</p>
+)
+
+const Warn = ({ children }: { children: ReactNode }) => (
+  <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">⚠ {children}</span>
+)
+
+const BAR_LABELS: [keyof Omit<ScoreBreakdown, 'knockout' | 'knockout_reason'>, string, number][] = [
+  ['must_haves', 'Cerințe esențiale', 40], ['stack', 'Stack', 25], ['seniority', 'Senioritate', 15], ['location', 'Locație', 10], ['salary', 'Salariu', 10],
+]
+
+function Breakdown({ b }: { b: ScoreBreakdown }) {
+  return (
+    <div className="space-y-1.5">
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Scor pe componente</div>
+      {BAR_LABELS.map(([key, label, max]) => (
+        <div key={key} className="grid grid-cols-[7.5rem_1fr_3rem] items-center gap-2 text-xs" title={`${label}: ${b[key]} din ${max}`}>
+          <span className="truncate">{label}</span>
+          <div className="h-2 overflow-hidden rounded-full bg-indigo-200/70 dark:bg-indigo-900/60" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={max} aria-valuenow={b[key]}>
+            <div className="h-full rounded-full bg-indigo-600 dark:bg-indigo-400" style={{ width: `${(b[key] / max) * 100}%` }} />
+          </div>
+          <span className="text-right tabular-nums text-slate-600 dark:text-slate-300">{b[key]}/{max}</span>
+        </div>
+      ))}
+      {b.knockout && (
+        <div className="mt-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white">
+          ⛔ KNOCKOUT: {b.knockout_reason}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const Stale = ({ children }: { children: ReactNode }) => (
+  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">🕓 {children}</span>
+)
+
+const Chip = ({ children }: { children: ReactNode }) => (
+  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">{children}</span>
+)
+
+export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatus: (s: Status) => void; onReload: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [description, setDescription] = useState<string | null | undefined>(undefined) // undefined = încă neîncărcat
+
+  async function toggle() {
+    const next = !open
+    setOpen(next)
+    if (next && description === undefined) {
+      try { setDescription((await fetchJob(job.job_id)).description ?? null) } catch { setDescription(null) }
+    }
+  }
+
+  async function reevaluate() {
+    if (!confirm('Ștergi evaluarea și sugestiile de CV pentru acest job? Jobul va fi evaluat din nou la următoarea rulare a lui Vadim.')) return
+    try { await reevaluateJob(job.job_id) } finally { onReload() }
+  }
+  const ev = job.evaluation
+  const cv = job.cv_suggestion
+  const dim = job.status === 'ignored' ? 'opacity-60' : ''
+
+  const btn = (s: Status, label: string, active: string) => (
+    <button
+      onClick={() => onStatus(s)}
+      className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+        job.status === s ? active : 'border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800'
+      }`}
+    >
+      {label}
+    </button>
+  )
+
+  return (
+    <article className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${dim}`}>
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {ev ? <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${VERDICT_STYLE[ev.verdict]}`}>{ev.verdict}</span>
+                : <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">NEEVALUAT</span>}
+            {ev?.score_breakdown?.knockout && <span className="rounded-md bg-red-600 px-2 py-0.5 text-xs font-bold text-white">KNOCKOUT</span>}
+            {job.status !== 'new' && <Chip>{STATUS_LABEL[job.status]}</Chip>}
+            {ev?.stale_cv && <Stale>evaluat pe CV vechi</Stale>}
+            {ev?.stale_profile && <Stale>evaluat pe profil vechi</Stale>}
+            {job.source === 'seed' && <Chip>test</Chip>}
+          </div>
+          <h2 className="mt-1 text-base font-semibold leading-snug sm:text-lg">{job.title}</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400">{job.company}{job.location ? ` · ${job.location}` : ''}</p>
+        </div>
+        {ev && (
+          <div className="text-right">
+            <div className={`text-3xl font-bold tabular-nums leading-none ${SCORE_STYLE[ev.verdict]}`}>{ev.score}</div>
+            <div className="text-[10px] uppercase tracking-wide text-slate-500">scor</div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <Chip>{REMOTE_LABEL[job.remote]}</Chip>
+        {job.salary && <Chip>💰 {job.salary}</Chip>}
+        <Chip>📅 {job.posted_date ?? 'dată necunoscută'}</Chip>
+        {!job.verified_link && <Warn>link neverificat</Warn>}
+        {!job.verified_date && <Warn>dată neverificată</Warn>}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <a href={job.url} target="_blank" rel="noopener noreferrer"
+           className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300">
+          Vezi anunțul ↗
+        </a>
+        {btn('applied', 'Aplicat', 'border-emerald-600 bg-emerald-600 text-white')}
+        {btn('seen', 'Văzut', 'border-sky-600 bg-sky-600 text-white')}
+        {btn('ignored', 'Ignoră', 'border-slate-600 bg-slate-600 text-white')}
+        <button onClick={toggle} className="ml-auto text-sm text-slate-500 underline-offset-2 hover:underline" aria-expanded={open}>
+          {open ? 'Ascunde detalii ▲' : 'Detalii ▼'}
+        </button>
+      </div>
+
+      {open && (
+        <div className="mt-4 space-y-3">
+          <section className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Descrierea anunțului</div>
+            {description === undefined ? <p className="text-sm text-slate-500">Se încarcă…</p>
+              : description ? <p className="max-h-56 overflow-auto whitespace-pre-wrap text-sm">{description}</p>
+              : <p className="text-sm text-slate-500">Durian nu a trimis descrierea.</p>}
+          </section>
+
+          <AgentSection agent="durian">
+            {job.durian_comment ? <Quote text={job.durian_comment} /> : <p className="text-slate-500">Fără comentariu.</p>}
+          </AgentSection>
+
+          <AgentSection agent="vadim">
+            {ev ? (
+              <>
+                {(ev.stale_cv || ev.stale_profile) && (
+                  <p className="rounded-lg bg-amber-100 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                    Evaluarea e făcută pe {[ev.stale_cv && 'un CV mai vechi', ev.stale_profile && 'un profil mai vechi'].filter(Boolean).join(' și ')}. Apasă „Reevaluează” ca să fie refăcută.
+                  </p>
+                )}
+                {ev.score_breakdown && <Breakdown b={ev.score_breakdown} />}
+                <List label="Se potrivește" items={ev.match} tone="text-emerald-700 dark:text-emerald-400" />
+                <List label="Lipsește" items={ev.missing} tone="text-amber-700 dark:text-amber-400" />
+                <List label="Semnale de alarmă" items={ev.red_flags} tone="text-red-700 dark:text-red-400" />
+                {ev.vadim_comment && <Quote text={ev.vadim_comment} />}
+              </>
+            ) : <p className="text-slate-500">Încă neevaluat.</p>}
+          </AgentSection>
+
+          {cv && (
+            <AgentSection agent="tzanca">
+              {cv.stale_cv && <Stale>sugestii făcute pe CV vechi</Stale>}
+              <List label="Modificări CV" items={cv.cv_changes} />
+              {cv.keywords_added.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Keywords</div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {cv.keywords_added.map((k, i) => <span key={i} className="rounded-full bg-teal-600/15 px-2 py-0.5 text-xs text-teal-800 dark:text-teal-200">{k}</span>)}
+                  </div>
+                </div>
+              )}
+              <List label="Întrebări pentru tine" items={cv.questions_for_user} />
+              {cv.tzanca_comment && <Quote text={cv.tzanca_comment} />}
+            </AgentSection>
+          )}
+          {ev && (
+            <div className="flex justify-end">
+              <button onClick={reevaluate} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">↻ Reevaluează</button>
+            </div>
+          )}
+        </div>
+      )}
+    </article>
+  )
+}

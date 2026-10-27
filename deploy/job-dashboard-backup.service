@@ -1,0 +1,15 @@
+[Unit]
+Description=Backup SQLite pentru Job Dashboard
+
+[Service]
+Type=oneshot
+User=jobdash
+Group=jobdash
+WorkingDirectory=/opt/job-dashboard
+ExecStart=/opt/job-dashboard/runtime/node /opt/job-dashboard/node_modules/tsx/dist/cli.mjs scripts/backup.ts
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/job-dashboard/data /opt/job-dashboard/backups
