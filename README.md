@@ -97,8 +97,8 @@ Din tab-ul **Agenți** poți încărca o poză pentru Durian, Vadim, Tzanca și 
 - **Securitate:** formatul se verifică după conținutul fișierului, nu după ce declară clientul; SVG e refuzat (poate conține scripturi); pozele se servesc cu `nosniff` și cu o politică CSP care interzice orice conținut activ.
 
 ## Teme: Basic și Severance
-Aplicația are două teme, comutabile din interfață (butoanele **Basic | Severance**: în antet la Basic, în partea de jos a meniului lateral la Severance). Alegerea se păstrează în browser (`localStorage`) și se aplică înainte de prima afișare, deci pagina nu „clipește”.
-- **Basic:** aspectul clasic; urmărește tema luminoasă/întunecată a sistemului.
+Aplicația are două teme, comutabile din interfață (butoanele **Basic | Severance**: în antet la Basic, în partea de jos a meniului lateral la Severance). **Severance e tema implicită**; dacă alegi Basic, alegerea se păstrează în browser (`localStorage`) și se aplică înainte de prima afișare, deci pagina nu „clipește”.
+- **Basic:** aspectul clasic (alegi tu explicit); urmărește tema luminoasă/întunecată a sistemului.
 - **Severance:** inspirată de interfața Lumon din serialul Severance: mereu întunecată, font IBM Plex Mono, colțuri drepte, meniu lateral cu tab-uri, carduri cu panouri colorate pe agent și detalii care se deschid animat. Tab-ul **Agenți** devine un birou văzut de sus: Milchick deasupra, iar Durian, Vadim și Tzanca la birou când lucrează și pe bancă când nu.
 - **Starea din birou** vine din dashboard (`GET /api/agents/activity`, doar din UI): un agent e „la birou” dacă a scris ceva în ultimele 5 minute (Durian un job, Vadim o evaluare, Tzanca sugestii), iar Tzanca și când ai cerut sugestii din butonul „Marchează APPLY” și nu s-au salvat încă. Serverul nu vede rulările Hermes, deci starea e o aproximare după activitate, nu o stare exactă de rulare. Pozele din tab-ul Agenți se încarcă tot acolo (vezi „Poze pentru agenți”).
 - **Pentru dezvoltatori:** `npm run dev` (Vite) arată în birou și un buton „Simulează activitate”, ca să vezi agenții mutându-se între birou și bancă; în varianta construită (`npm run build`) nu există.

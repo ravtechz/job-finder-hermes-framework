@@ -4,10 +4,10 @@ export type Theme = 'basic' | 'severance'
 const KEY = 'jd-theme'
 
 const readTheme = (): Theme => {
-  try { return localStorage.getItem(KEY) === 'severance' ? 'severance' : 'basic' } catch { return 'basic' }
+  try { return localStorage.getItem(KEY) === 'basic' ? 'basic' : 'severance' } catch { return 'severance' }
 }
 
-/** Basic urmărește tema sistemului (ca înainte); Severance e mereu întunecată. Clasa `dark` activează variantele `dark:`. */
+/** Severance e tema implicită (cât timp nu alegi Basic). Basic urmărește tema sistemului (ca înainte); Severance e mereu întunecată. Clasa `dark` activează variantele `dark:`. */
 function apply(theme: Theme) {
   const root = document.documentElement
   root.dataset.theme = theme
@@ -15,7 +15,7 @@ function apply(theme: Theme) {
   root.classList.toggle('dark', dark)
 }
 
-const Ctx = createContext<{ theme: Theme; setTheme: (t: Theme) => void }>({ theme: 'basic', setTheme: () => {} })
+const Ctx = createContext<{ theme: Theme; setTheme: (t: Theme) => void }>({ theme: 'severance', setTheme: () => {} })
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(readTheme)

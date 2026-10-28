@@ -10,10 +10,10 @@
       (function () {
         var d = document.documentElement
         try {
-          var t = localStorage.getItem('jd-theme') === 'severance' ? 'severance' : 'basic'
+          var t = localStorage.getItem('jd-theme') === 'basic' ? 'basic' : 'severance'
           d.dataset.theme = t
           if (t === 'severance' || matchMedia('(prefers-color-scheme: dark)').matches) d.classList.add('dark')
-        } catch (e) { d.dataset.theme = 'basic' }
+        } catch (e) { d.dataset.theme = 'severance'; d.classList.add('dark') }
       })()
     </script>
   </head>
