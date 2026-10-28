@@ -40,7 +40,7 @@ function TagInput({ value, onChange, placeholder }: { value: string[]; onChange:
         </span>
       ))}
       <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKey} onBlur={() => add(draft)} placeholder={value.length ? '' : placeholder}
-             className="min-w-[4rem] flex-1 bg-transparent px-1 py-0.5 text-sm outline-none" />
+             className="tag-input min-w-[4rem] flex-1 bg-transparent px-1 py-0.5 text-sm outline-none" />
     </div>
   )
 }
@@ -128,7 +128,7 @@ export default function ProfilePage() {
           <legend className="text-sm font-medium">Mod de lucru acceptat</legend>
           <div className="mt-1 flex flex-wrap gap-2">
             {MODES.map(([m, label]) => (
-              <label key={m} className={`cursor-pointer rounded-lg border px-3 py-1.5 text-sm ${p.work_modes.includes(m) ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 dark:border-slate-700'}`}>
+              <label key={m} data-on={p.work_modes.includes(m)} className={`opt cursor-pointer rounded-lg border px-3 py-1.5 text-sm ${p.work_modes.includes(m) ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 dark:border-slate-700'}`}>
                 <input type="checkbox" className="sr-only" checked={p.work_modes.includes(m)} onChange={() => toggleMode(m)} />
                 {label}
               </label>
@@ -148,7 +148,7 @@ export default function ProfilePage() {
       </section>
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={busy} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">Salvează profilul</button>
+        <button type="submit" disabled={busy} className="btn btn-accent rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50">Salvează profilul</button>
         {savedAt && <span className="text-xs text-slate-500">ultima modificare {new Date(savedAt).toLocaleString('ro-RO')}</span>}
       </div>
       {msg && <p className={`rounded-lg p-3 text-sm ${msg.ok ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200' : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200'}`}>{msg.text}</p>}

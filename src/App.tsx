@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { fetchJobs, fetchStats, setStatus } from './api'
 import AgentsPage from './AgentsPage'
 import { AgentAvatar } from './avatars'
+import { ThemeSwitch } from './theme'
 import CvPage from './CvPage'
 import JobCard from './JobCard'
 import ProfilePage from './ProfilePage'
@@ -9,13 +10,13 @@ import type { Filters, Job, Stats, Status } from './types'
 
 const today = () => new Intl.DateTimeFormat('en-CA').format(new Date()) // YYYY-MM-DD în fusul browserului
 
-const field = 'rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900'
+const field = 'field rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900'
 
 function Stat({ label, value, tone }: { label: string; value: string | number; tone: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-      <div className={`text-2xl font-bold tabular-nums ${tone}`}>{value}</div>
-      <div className="text-xs text-slate-500 dark:text-slate-400">{label}</div>
+    <div className="stat rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+      <div className={`stat-v text-2xl font-bold tabular-nums ${tone}`}>{value}</div>
+      <div className="stat-l text-xs text-slate-500 dark:text-slate-400">{label}</div>
     </div>
   )
 }
@@ -56,29 +57,42 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-5">
-      <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="app">
+      <header className="app-top">
+        <div className="sev-only crumb">LUMON / MACRODATA REFINEMENT</div>
         <div>
           <h1 className="text-xl font-bold sm:text-2xl">
             {page === 'cv' ? 'CV' : page === 'profile' ? 'Profil' : page === 'agents' ? 'Agenți' : filters.mode === 'week' ? 'Ultimele 7 zile' : isToday ? 'Azi' : filters.date}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Joburi găsite de Durian, evaluate de Vadim, pregătite de Tzanca.</p>
-          <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <p className="basic-only mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
             <AgentAvatar agent="milchick" name="Domnu Milchick" initials="DM" bg="bg-slate-700" size="h-5 w-5 text-[9px]" />
             Sub supravegherea lui Domnu Milchick
           </p>
         </div>
-        <nav className="flex shrink-0 gap-1 self-start rounded-xl bg-slate-200 p-1 text-sm dark:bg-slate-800">
-          {([['jobs', 'Joburi'], ['cv', 'CV'], ['profile', 'Profil'], ['agents', 'Agenți']] as const).map(([k, label]) => (
-            <button key={k} onClick={() => setPage(k)}
-                    className={`rounded-lg px-3 py-1 font-medium ${page === k ? 'bg-white shadow dark:bg-slate-600' : 'text-slate-600 dark:text-slate-300'}`}>{label}</button>
-          ))}
-        </nav>
       </header>
 
+      <aside className="app-side">
+        <div className="sev-only side-menu">MENU</div>
+        <nav role="tablist" className="tabs flex shrink-0 gap-1 self-start rounded-xl bg-slate-200 p-1 text-sm dark:bg-slate-800">
+          {([['jobs', 'Joburi', 'Live desk'], ['cv', 'CV', 'Documente'], ['profile', 'Profil', 'Preferințe'], ['agents', 'Agenți', 'Birouri']] as const).map(([k, label, sub]) => (
+            <button key={k} role="tab" aria-selected={page === k} onClick={() => setPage(k)}
+                    className={`rounded-lg px-3 py-1 font-medium ${page === k ? 'bg-white shadow dark:bg-slate-600' : 'text-slate-600 dark:text-slate-300'}`}>
+              <span className="tab-label">{label}</span>
+              <span className="sev-only tab-sub">{sub}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="side-foot">
+          <ThemeSwitch />
+          <div className="sev-only side-brand">LUMON INDUSTRIES<br />JOB FINDER<br />BAY-00 / SESIUNE ACTIVĂ</div>
+        </div>
+      </aside>
+
+      <main className="app-main">
       {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : page === 'agents' ? <AgentsPage /> : <>
 
-      <div className="mb-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
+      <div className="stats mb-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
         <Stat label={filters.mode === 'week' ? 'Noi (7 zile)' : isToday ? 'Noi azi' : 'Noi în zi'} value={stats?.new_jobs ?? '–'} tone="" />
         <Stat label="APPLY" value={stats?.apply ?? '–'} tone="text-emerald-600 dark:text-emerald-400" />
         <Stat label="MAYBE" value={stats?.maybe ?? '–'} tone="text-amber-600 dark:text-amber-400" />
@@ -86,11 +100,11 @@ export default function App() {
         <Stat label="Scor mediu" value={stats?.avg_score ?? '–'} tone="" />
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="filters mb-4 flex flex-wrap items-center gap-2">
         <input type="date" className={field} value={filters.date} max={today()}
                onChange={(e) => e.target.value && setFilters((f) => ({ ...f, mode: 'day', date: e.target.value }))} />
-        <button onClick={() => set('mode', filters.mode === 'week' ? 'day' : 'week')}
-                className={`rounded-lg border px-3 py-1.5 text-sm ${filters.mode === 'week' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 dark:border-slate-700'}`}>
+        <button onClick={() => set('mode', filters.mode === 'week' ? 'day' : 'week')} aria-pressed={filters.mode === 'week'}
+                className={`btn rounded-lg border px-3 py-1.5 text-sm ${filters.mode === 'week' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 dark:border-slate-700'}`}>
           Ultimele 7 zile
         </button>
         {!isToday && <button onClick={() => setFilters((f) => ({ ...f, mode: 'day', date: today() }))} className="text-sm underline">Azi</button>}
@@ -120,6 +134,7 @@ export default function App() {
         )}
       </div>
       </>}
+      </main>
     </div>
   )
 }

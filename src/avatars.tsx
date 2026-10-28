@@ -22,6 +22,6 @@ export const useAvatars = () => useContext(Ctx)
 
 export function AgentAvatar({ agent, name, initials, bg, size = 'h-8 w-8 text-xs' }: { agent: AgentKey; name: string; initials: string; bg: string; size?: string }) {
   const v = useAvatars().versions[agent]
-  if (v) return <img src={`/api/avatars/${agent}?v=${encodeURIComponent(v)}`} alt={name} className={`${size} shrink-0 rounded-full object-cover`} />
-  return <span className={`flex ${size} shrink-0 items-center justify-center rounded-full font-bold text-white ${bg}`} aria-label={name}>{initials}</span>
+  if (v) return <img src={`/api/avatars/${agent}?v=${encodeURIComponent(v)}`} alt={name} className={`avatar ${size} shrink-0 rounded-full object-cover`} />
+  return <span className={`avatar flex ${size} shrink-0 items-center justify-center rounded-full font-bold text-white ${bg}`} aria-label={name}>{initials}</span>
 }

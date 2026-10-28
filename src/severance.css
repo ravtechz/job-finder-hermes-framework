@@ -1,0 +1,283 @@
+/* ===================================================================================================
+   Tema „Severance” (interfața Lumon). Se aplică doar când <html data-theme="severance">; tema Basic nu e atinsă.
+   Referința de design: severance-theme-sample.html. Fișierul e CSS simplu (neîn-layer), deci câștigă în fața
+   utilitarelor Tailwind de pe elemente. Culorile se definesc o singură dată, ca tokeni, în blocul de mai jos.
+   Fontul IBM Plex Mono (SIL OFL 1.1, vezi public/fonts/LICENSE.txt) e servit local; se descarcă doar sub această temă.
+   =================================================================================================== */
+
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/plex-mono-400-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/plex-mono-400-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/plex-mono-500-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/plex-mono-500-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/plex-mono-600-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/plex-mono-600-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ---------- 1. TOKENI ---------- */
+[data-theme="severance"] {
+  --sev-font: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --sev-bg: #0a161e;          /* fundal pagină */
+  --sev-bg-glow: #12303d;     /* gradient radial sus-dreapta */
+  --sev-panel: #0d1d27;       /* sidebar, header, carduri */
+  --sev-panel-deep: #0a1a24;  /* zone înfundate */
+  --sev-line: #1f3b4a;
+  --sev-line-soft: #16303d;
+  --sev-grid: rgba(111, 214, 210, .05);
+  --sev-text: #cfe3e6;
+  --sev-text-hi: #e4f1f2;
+  --sev-text-mid: #b5ccd1;
+  --sev-muted: #6a8a98;
+  --sev-faint: #4f7080;
+  --sev-faintest: #3f6070;
+  --sev-cyan: #6fd6d2;        /* accent principal (acțiuni, activ, Vadim) */
+  --sev-cyan-hi: #b8f0ec;
+  --sev-cyan-line: #2c6f78;
+  --sev-gold: #d9b25a;        /* MAYBE, Milchick, Durian, avertizări */
+  --sev-gold-hi: #e8cf8f;
+  --sev-gold-line: #8a7440;
+  --sev-green: #5fd4a8;       /* APPLY, se potrivește */
+  --sev-red: #e0675c;         /* semnale de alarmă */
+  --sev-indigo: #98a8ee;      /* Tzanca */
+  --sev-indigo-hi: #b3c0f5;
+  --sev-indigo-line: #3a4f8a;
+  --sev-skip: #5d7a85;
+  --sev-ease: cubic-bezier(.4, 0, .2, 1);
+
+  /* --- paleta Tailwind refăcută: utilitarele existente (bg-slate-900, text-indigo-400 ...) iau culorile Lumon --- */
+  --font-sans: var(--sev-font);
+  --font-mono: var(--sev-font);
+  --default-font-family: var(--sev-font);
+  --default-mono-font-family: var(--sev-font);
+  --radius-xs: 0; --radius-sm: 0; --radius-md: 0; --radius-lg: 0; --radius-xl: 0; --radius-2xl: 0; --radius-3xl: 0; --radius-4xl: 0;
+  --shadow-2xs: 0 0 #0000; --shadow-xs: 0 0 #0000; --shadow-sm: 0 0 #0000; --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000; --shadow-xl: 0 0 #0000; --shadow-2xl: 0 0 #0000;
+
+  /* neutre -> albastru-verzui închis */
+  --color-slate-50: #e4f1f2;  --color-slate-100: #cfe3e6; --color-slate-200: #b5ccd1; --color-slate-300: #9fbac2;
+  --color-slate-400: #6a8a98; --color-slate-500: #4f7080; --color-slate-600: #3f6070; --color-slate-700: #2a4553;
+  --color-slate-800: #1f3b4a; --color-slate-900: #0d1d27; --color-slate-950: #0a161e;
+  /* accent (indigo în Basic) -> cyan, culoarea lui Vadim */
+  --color-indigo-50: #e6faf9;  --color-indigo-100: #cdf5f3; --color-indigo-200: #b8f0ec; --color-indigo-300: #6fd6d2;
+  --color-indigo-400: #6fd6d2; --color-indigo-500: #4fb8b4; --color-indigo-600: #2c6f78; --color-indigo-700: #2c6f78;
+  --color-indigo-800: #2c6f78; --color-indigo-900: #12303d; --color-indigo-950: #0c222b;
+  /* fuchsia (Durian în Basic) -> auriu */
+  --color-fuchsia-50: #fbf3dd;  --color-fuchsia-100: #f5e7bd; --color-fuchsia-200: #e8cf8f; --color-fuchsia-300: #e8cf8f;
+  --color-fuchsia-400: #d9b25a; --color-fuchsia-500: #d9b25a; --color-fuchsia-600: #8a7440; --color-fuchsia-700: #8a7440;
+  --color-fuchsia-800: #8a7440; --color-fuchsia-900: #3a3118; --color-fuchsia-950: #1d1a10;
+  /* teal (Tzanca în Basic) -> indigo */
+  --color-teal-50: #eef1fd;  --color-teal-100: #dde3fa; --color-teal-200: #b3c0f5; --color-teal-300: #b3c0f5;
+  --color-teal-400: #98a8ee; --color-teal-500: #98a8ee; --color-teal-600: #3a4f8a; --color-teal-700: #3a4f8a;
+  --color-teal-800: #3a4f8a; --color-teal-900: #1c2650; --color-teal-950: #121830;
+  /* verde = APPLY / se potrivește */
+  --color-emerald-100: #d6f5ea; --color-emerald-200: #b9ecd9; --color-emerald-400: #5fd4a8; --color-emerald-500: #5fd4a8;
+  --color-emerald-600: #5fd4a8; --color-emerald-900: #1d5a45; --color-emerald-950: #0f2a22;
+  /* auriu = MAYBE / avertizări */
+  --color-amber-100: #f5e7bd; --color-amber-200: #e8cf8f; --color-amber-400: #d9b25a; --color-amber-500: #d9b25a;
+  --color-amber-600: #d9b25a; --color-amber-700: #b8923a; --color-amber-800: #e8cf8f; --color-amber-900: #e8cf8f; --color-amber-950: #2a2210;
+  /* roșu = semnale de alarmă */
+  --color-red-100: #f6d4d0; --color-red-200: #f0a8a0; --color-red-300: #e0675c; --color-red-400: #e0675c;
+  --color-red-500: #e0675c; --color-red-600: #c24e44; --color-red-700: #e0675c; --color-red-800: #f0a8a0; --color-red-950: #2a1210;
+  --color-sky-600: #2c6f78;
+}
+
+/* ---------- 2. BAZA ---------- */
+[data-theme="severance"] body {
+  background: radial-gradient(1200px 600px at 70% -10%, var(--sev-bg-glow) 0%, var(--sev-bg) 60%) fixed;
+  background-color: var(--sev-bg);
+  color: var(--sev-text);
+  font: 13px/1.55 var(--sev-font);
+}
+[data-theme="severance"] ::selection { background: var(--sev-cyan); color: var(--sev-bg); }
+[data-theme="severance"] :focus-visible { outline: 2px solid var(--sev-cyan); outline-offset: 2px; }
+[data-theme="severance"] a { color: var(--sev-cyan); text-decoration: none; }
+[data-theme="severance"] a:hover { color: var(--sev-cyan-hi); }
+/* avatarele rămân rotunde; restul colțurilor sunt drepte, inclusiv chip-urile „pastilă” din Basic */
+[data-theme="severance"] .rounded-full:not(.avatar) { border-radius: 0; }
+/* etichete: MAJUSCULE cu spațiere largă */
+[data-theme="severance"] .uppercase { letter-spacing: .22em; }
+[data-theme="severance"] .label { font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: var(--sev-faint); }
+
+/* ---------- 3. LAYOUT: sidebar + conținut ---------- */
+[data-theme="severance"] .app {
+  max-width: none; padding: 0; gap: 0; min-height: 100vh;
+  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "side top" "side main";
+}
+[data-theme="severance"] .app-side {
+  background: var(--sev-panel); border-right: 1px solid var(--sev-line);
+  align-items: stretch; gap: 0;
+}
+[data-theme="severance"] .side-menu { padding: 18px 18px 14px; border-bottom: 1px solid var(--sev-line-soft); font-size: 10px; letter-spacing: .3em; color: var(--sev-faintest); }
+[data-theme="severance"] .tabs { flex-direction: column; gap: 6px; padding: 22px 18px; background: none; border-radius: 0; align-self: stretch; }
+[data-theme="severance"] .tabs button {
+  display: block; text-align: left; background: none; border: 0; border-left: 2px solid transparent; border-radius: 0; box-shadow: none;
+  padding: 8px 0 8px 10px; font-size: 10px; font-weight: 400; letter-spacing: .22em; line-height: 1.7; text-transform: uppercase;
+  color: var(--sev-faintest); cursor: pointer;
+}
+[data-theme="severance"] .tabs button:hover { color: var(--sev-text); }
+[data-theme="severance"] .tabs button[aria-selected="true"] { color: var(--sev-text); border-left-color: var(--sev-cyan); }
+[data-theme="severance"] .tab-label { display: block; font-weight: 600; }
+[data-theme="severance"] .tab-sub { display: block; }
+[data-theme="severance"] .side-foot { margin-top: auto; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+[data-theme="severance"] .side-brand { font-size: 9px; letter-spacing: .2em; line-height: 1.8; color: #2f4b59; }
+[data-theme="severance"] .app-top { background: var(--sev-panel); border-bottom: 1px solid var(--sev-line-soft); padding: 22px 36px 18px; }
+[data-theme="severance"] .crumb { font-size: 10px; letter-spacing: .3em; color: var(--sev-faintest); }
+[data-theme="severance"] .app-top h1 { margin: 6px 0 0; font-size: 28px; font-weight: 500; letter-spacing: .18em; color: var(--sev-cyan); text-transform: uppercase; }
+[data-theme="severance"] .app-top p { margin: 6px 0 0; font-size: 12px; letter-spacing: .06em; color: var(--sev-muted); }
+[data-theme="severance"] .app-main { margin: 0; padding: 26px 36px 60px; max-width: 1040px; display: flex; flex-direction: column; gap: 26px; }
+[data-theme="severance"] .app-main > * { margin: 0; }
+
+/* comutatorul de temă în sidebar */
+[data-theme="severance"] .theme-switch { flex-wrap: wrap; gap: 6px; }
+[data-theme="severance"] .theme-switch-label { flex-basis: 100%; margin: 0; font-size: 9px; letter-spacing: .3em; text-transform: uppercase; color: var(--sev-faintest); }
+[data-theme="severance"] .theme-switch button {
+  background: var(--sev-panel); border: 1px solid var(--sev-line); border-radius: 0; padding: 4px 10px;
+  font-size: 10px; letter-spacing: .14em; color: var(--sev-muted); cursor: pointer;
+}
+[data-theme="severance"] .theme-switch button:hover { color: var(--sev-text-hi); }
+[data-theme="severance"] .theme-switch button[aria-pressed="true"] { color: var(--sev-cyan); border-color: var(--sev-cyan); background: rgba(111, 214, 210, .1); }
+
+/* sub ~800px: sidebar-ul devine o bară orizontală */
+@media (max-width: 800px) {
+  [data-theme="severance"] .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "side" "top" "main"; }
+  [data-theme="severance"] .app-side { flex-direction: row; flex-wrap: wrap; align-items: center; border-right: 0; border-bottom: 1px solid var(--sev-line); }
+  [data-theme="severance"] .side-menu, [data-theme="severance"] .side-brand, [data-theme="severance"] .tab-sub { display: none; }
+  [data-theme="severance"] .tabs { flex-direction: row; flex-wrap: wrap; gap: 2px; padding: 8px 12px; align-self: center; }
+  [data-theme="severance"] .tabs button { border-left: 0; border-bottom: 2px solid transparent; padding: 6px 8px; }
+  [data-theme="severance"] .tabs button[aria-selected="true"] { border-bottom-color: var(--sev-cyan); }
+  [data-theme="severance"] .side-foot { margin: 0 12px 0 auto; padding: 8px 0; }
+  [data-theme="severance"] .theme-switch-label { flex-basis: auto; }
+  [data-theme="severance"] .app-top { padding: 16px; }
+  [data-theme="severance"] .app-main { padding: 18px 16px 48px; gap: 20px; }
+  [data-theme="severance"] .app-main label > span:first-child, [data-theme="severance"] legend { letter-spacing: .12em; }
+  [data-theme="severance"] .job > div:not(.details) { padding-inline: 14px; }
+  [data-theme="severance"] .details-in { padding: 0 14px 18px; }
+  [data-theme="severance"] .job-title { font-size: 16px; }
+  [data-theme="severance"] .score-n { font-size: 34px; }
+  [data-theme="severance"] .bar { grid-template-columns: minmax(70px, 110px) minmax(0, 1fr) 44px; gap: 8px; }
+}
+
+/* ---------- 4. STATISTICI ȘI FILTRE ---------- */
+[data-theme="severance"] .stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+[data-theme="severance"] .stat { border: 1px solid var(--sev-line); background: var(--sev-panel); padding: 14px 16px; }
+[data-theme="severance"] .stat-v { font-size: 30px; font-weight: 500; letter-spacing: .06em; line-height: 1.1; }
+[data-theme="severance"] .stat-l { margin-top: 6px; font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: var(--sev-faint); }
+[data-theme="severance"] .field {
+  border: 1px solid var(--sev-line); background: var(--sev-panel); color: var(--sev-text); padding: 8px 12px;
+  font: 12px var(--sev-font); letter-spacing: .08em;
+}
+[data-theme="severance"] .filters { gap: 10px; }
+
+/* ---------- 5. BUTOANE: contur 1px; singurul plin e „Vezi anunțul” ---------- */
+[data-theme="severance"] .btn {
+  display: inline-block; cursor: pointer; padding: 8px 16px; font-size: 11px; font-weight: 400; letter-spacing: .14em;
+  border: 1px solid var(--sev-line); border-radius: 0; background: transparent; color: var(--sev-text-mid); text-decoration: none; box-shadow: none;
+}
+[data-theme="severance"] .btn:hover { border-color: var(--sev-cyan); background: transparent; color: var(--sev-text-mid); text-decoration: none; }
+[data-theme="severance"] .btn[aria-pressed="true"] { border-color: var(--sev-cyan); color: var(--sev-cyan); background: rgba(111, 214, 210, .1); }
+[data-theme="severance"] .btn:disabled { opacity: .5; cursor: default; }
+[data-theme="severance"] .btn-solid, [data-theme="severance"] .btn-solid:hover { background: var(--sev-cyan); border-color: var(--sev-cyan); color: var(--sev-bg); font-weight: 600; }
+[data-theme="severance"] .btn-solid:hover { background: var(--sev-cyan-hi); }
+[data-theme="severance"] .btn-accent { border-color: var(--sev-cyan); color: var(--sev-cyan); background: rgba(111, 214, 210, .08); }
+[data-theme="severance"] .btn-accent:hover { background: rgba(111, 214, 210, .16); border-color: var(--sev-cyan); color: var(--sev-cyan-hi); }
+[data-theme="severance"] .btn-apply { border-color: var(--sev-green); color: var(--sev-green); }
+[data-theme="severance"] .btn-apply:hover { border-color: var(--sev-green); background: rgba(95, 212, 168, .1); color: var(--sev-green); }
+[data-theme="severance"] .btn-ghost { border-color: transparent; color: var(--sev-faint); }
+[data-theme="severance"] .btn-ghost:hover { border-color: transparent; color: var(--sev-cyan); text-decoration: none; }
+
+/* ---------- 6. CARD JOB ---------- */
+[data-theme="severance"] .job { border: 1px solid var(--sev-line); background: rgba(13, 29, 39, .85); padding: 0; transition: border-color .5s var(--sev-ease); }
+[data-theme="severance"] .job.is-open { border-color: var(--sev-gold-line); }
+[data-theme="severance"] .job > div:not(.details) { padding-inline: 22px; }
+[data-theme="severance"] .job > div:first-child { padding-top: 20px; }
+[data-theme="severance"] .job > .actions { padding-bottom: 20px; margin-top: 14px; gap: 10px; }
+[data-theme="severance"] .job > .chips { margin-top: 12px; gap: 8px; }
+[data-theme="severance"] .job-title { margin: 8px 0 0; font-size: 19px; font-weight: 500; letter-spacing: .06em; line-height: 1.35; color: var(--sev-text-hi); }
+[data-theme="severance"] .job-meta { margin-top: 6px; font-size: 12px; letter-spacing: .06em; color: var(--sev-muted); }
+[data-theme="severance"] .badge {
+  display: inline-block; padding: 2px 10px; font-size: 10px; letter-spacing: .24em; font-weight: 600;
+  background: transparent; border: 1px solid currentColor;
+}
+[data-theme="severance"] .badge.v-apply { color: var(--sev-green); }
+[data-theme="severance"] .badge.v-maybe { color: var(--sev-gold); }
+[data-theme="severance"] .badge.v-skip { color: var(--sev-skip); }
+[data-theme="severance"] .badge.v-none { color: var(--sev-faint); }
+[data-theme="severance"] .badge.v-knockout { color: var(--sev-red); }
+[data-theme="severance"] .score-n { font-size: 44px; font-weight: 500; letter-spacing: 0; line-height: 1; }
+[data-theme="severance"] .score-l { margin-top: 4px; font-size: 10px; letter-spacing: .3em; color: var(--sev-faint); }
+[data-theme="severance"] .chip {
+  display: inline-block; padding: 2px 10px; border: 1px solid var(--sev-line); background: transparent;
+  font-size: 10px; font-weight: 400; letter-spacing: .2em; text-transform: uppercase; color: var(--sev-faint);
+}
+[data-theme="severance"] .chip-warn { border-color: rgba(224, 103, 92, .5); color: var(--sev-red); }
+[data-theme="severance"] .chip-stale { border-color: var(--sev-gold-line); color: var(--sev-gold); }
+[data-theme="severance"] .chip-kw { border-color: var(--sev-indigo-line); color: var(--sev-indigo-hi); }
+[data-theme="severance"] .chev { margin-left: 4px; }
+
+/* detalii: animația e în index.css; aici doar spațierea */
+[data-theme="severance"] .details-in { margin: 0; padding: 0 22px 22px; display: flex; flex-direction: column; gap: 16px; }
+[data-theme="severance"] .details-in > * { margin: 0; }
+
+/* panouri pe agent: fiecare agent are culoarea lui */
+[data-theme="severance"] .box { border: 1px solid var(--sev-line); padding: 16px 18px; background: transparent; }
+[data-theme="severance"] .box.desc { background: var(--sev-panel-deep); }
+[data-theme="severance"] .box.desc .label { margin-bottom: 8px; letter-spacing: .3em; }
+[data-theme="severance"] .box.durian { border-color: var(--sev-gold-line); background: rgba(138, 116, 64, .06); }
+[data-theme="severance"] .box.vadim { border-color: var(--sev-cyan-line); background: rgba(111, 214, 210, .04); }
+[data-theme="severance"] .box.tzanca { border-color: var(--sev-indigo-line); background: rgba(130, 150, 230, .05); }
+[data-theme="severance"] .box > .space-y-2 { display: flex; flex-direction: column; gap: 14px; }
+[data-theme="severance"] .box > .space-y-2 > * { margin: 0; }
+[data-theme="severance"] .who { gap: 12px; margin-bottom: 14px; }
+[data-theme="severance"] .who .avatar { width: 34px; height: 34px; border: 1px solid currentColor; }
+[data-theme="severance"] .who .nm { font-size: 13px; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; }
+[data-theme="severance"] .who .rl { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--sev-muted); }
+[data-theme="severance"] .box.durian .who { color: var(--sev-gold); }
+[data-theme="severance"] .box.vadim .who { color: var(--sev-cyan); }
+[data-theme="severance"] .box.tzanca .who { color: var(--sev-indigo); }
+[data-theme="severance"] .box.durian .nm { color: var(--sev-gold-hi); }
+[data-theme="severance"] .box.vadim .nm { color: var(--sev-cyan); }
+[data-theme="severance"] .box.tzanca .nm { color: var(--sev-indigo-hi); }
+[data-theme="severance"] .quote-row { gap: 10px; align-items: center; }
+[data-theme="severance"] .quote-row .avatar { width: 28px; height: 28px; }
+[data-theme="severance"] .quote { font-style: italic; padding: 10px 14px; background: rgba(10, 22, 30, .6); color: #9fc3c6; }
+[data-theme="severance"] .box.durian .quote { color: #d4c8a4; }
+
+/* bare de scor */
+[data-theme="severance"] .bar { grid-template-columns: minmax(90px, 150px) minmax(0, 1fr) 54px; gap: 14px; }
+[data-theme="severance"] .bar .track { height: 6px; background: var(--sev-bg-glow); }
+[data-theme="severance"] .bar .fill { height: 6px; background: var(--sev-cyan); }
+[data-theme="severance"] .knockout { background: transparent; border: 1px solid var(--sev-red); color: var(--sev-red); letter-spacing: .06em; }
+
+/* liste: se potrivește / lipsește / semnale de alarmă */
+[data-theme="severance"] .lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+[data-theme="severance"] .lists > * { margin: 0; }
+[data-theme="severance"] .list .lh { margin-bottom: 6px; font-size: 11px; letter-spacing: .24em; }
+[data-theme="severance"] .list ul { list-style: none; margin: 0; padding: 0; }
+[data-theme="severance"] .list li { display: flex; gap: 10px; padding: 2px 0; color: var(--sev-text-mid); }
+[data-theme="severance"] .list li::before { content: '•'; color: var(--sev-faint); }
+[data-theme="severance"] .list[data-kind="fit"] li::before { content: '+'; color: var(--sev-green); }
+[data-theme="severance"] .list[data-kind="miss"] li::before { content: '−'; color: var(--sev-gold); }
+[data-theme="severance"] .list[data-kind="flag"] li::before { content: '!'; color: var(--sev-red); }
+
+/* ---------- 7. CV, PROFIL, FORMULARE ---------- */
+[data-theme="severance"] .app-main section > h2 { margin: 0 0 4px; font-size: 12px; font-weight: 600; letter-spacing: .25em; text-transform: uppercase; color: var(--sev-text-hi); }
+[data-theme="severance"] .app-main section { border-color: var(--sev-line); background: var(--sev-panel); }
+[data-theme="severance"] .app-main section.box { background: transparent; }
+[data-theme="severance"] input:not([type="checkbox"]):not([type="file"]), [data-theme="severance"] select, [data-theme="severance"] textarea {
+  border: 1px solid var(--sev-line); background: var(--sev-panel-deep); color: var(--sev-text); border-radius: 0;
+  font: 12px var(--sev-font); letter-spacing: .04em;
+}
+[data-theme="severance"] input::placeholder, [data-theme="severance"] textarea::placeholder { color: var(--sev-faint); }
+[data-theme="severance"] input:focus, [data-theme="severance"] select:focus, [data-theme="severance"] textarea:focus { border-color: var(--sev-cyan); outline: none; }
+[data-theme="severance"] .field { min-width: 0; }
+[data-theme="severance"] .app-main label > span:first-child { font-size: 11px; font-weight: 400; letter-spacing: .2em; text-transform: uppercase; color: var(--sev-text-mid); }
+[data-theme="severance"] legend { font-size: 11px; font-weight: 400; letter-spacing: .2em; text-transform: uppercase; color: var(--sev-text-mid); }
+[data-theme="severance"] .opt { border: 1px solid var(--sev-line); background: transparent; color: var(--sev-muted); font-size: 11px; letter-spacing: .14em; padding: 8px 14px; }
+[data-theme="severance"] .opt:hover { color: var(--sev-text-hi); }
+[data-theme="severance"] .opt[data-on="true"] { color: var(--sev-cyan); border-color: var(--sev-cyan); background: rgba(111, 214, 210, .1); }
+[data-theme="severance"] details > summary { font-size: 11px; letter-spacing: .14em; color: var(--sev-muted); }
+[data-theme="severance"] pre { background: var(--sev-panel-deep); color: var(--sev-text-mid); border: 1px solid var(--sev-line-soft); }
+[data-theme="severance"] .border-dashed { border-color: var(--sev-line); }
+[data-theme="severance"] input.tag-input:not([type="checkbox"]):not([type="file"]),
+[data-theme="severance"] input.tag-input:not([type="checkbox"]):not([type="file"]):focus { border: 0; background: transparent; }
+[data-theme="severance"] .app-main .flex-wrap:has(> .tag-input), [data-theme="severance"] .app-main div:has(> input.tag-input) { background: var(--sev-panel-deep); border-color: var(--sev-line); }

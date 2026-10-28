@@ -9,7 +9,7 @@ const AGENTS: { key: AgentKey; name: string; role: string; initials: string; bg:
   { key: 'tzanca', name: 'Tzanca Ciocanu', role: 'Ajustează CV-ul', initials: 'TC', bg: 'bg-teal-600' },
 ]
 
-const btn = 'rounded-lg border px-3 py-1.5 text-sm font-medium transition disabled:opacity-50'
+const btn = 'btn rounded-lg border px-3 py-1.5 text-sm font-medium transition disabled:opacity-50'
 const ghost = `${btn} border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800`
 
 /** Decupează pătrat din centru și micșorează la 256 px: poza rămâne mică și se încarcă repede în carduri. */

@@ -25,12 +25,12 @@ const AGENTS = {
 function AgentSection({ agent, children }: { agent: keyof typeof AGENTS; children: ReactNode }) {
   const a = AGENTS[agent]
   return (
-    <section className={`rounded-xl border p-3 ${a.box}`}>
-      <div className="mb-2 flex items-center gap-2">
+    <section className={`box ${agent} rounded-xl border p-3 ${a.box}`}>
+      <div className="who mb-2 flex items-center gap-2">
         <AgentAvatar agent={agent} name={a.name} initials={a.initials} bg={a.avatar} />
         <div className="leading-tight">
-          <div className={`text-sm font-semibold ${a.title}`}>{a.name}</div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">{a.role}</div>
+          <div className={`nm text-sm font-semibold ${a.title}`}>{a.name}</div>
+          <div className="rl text-xs text-slate-500 dark:text-slate-400">{a.role}</div>
         </div>
       </div>
       <div className="space-y-2 text-sm">{children}</div>
@@ -38,11 +38,11 @@ function AgentSection({ agent, children }: { agent: keyof typeof AGENTS; childre
   )
 }
 
-function List({ label, items, tone }: { label: string; items: string[]; tone?: string }) {
+function List({ label, items, tone, kind }: { label: string; items: string[]; tone?: string; kind?: 'fit' | 'miss' | 'flag' }) {
   if (!items.length) return null
   return (
-    <div>
-      <div className={`text-xs font-semibold uppercase tracking-wide ${tone ?? 'text-slate-500 dark:text-slate-400'}`}>{label}</div>
+    <div className="list" data-kind={kind}>
+      <div className={`lh text-xs font-semibold uppercase tracking-wide ${tone ?? 'text-slate-500 dark:text-slate-400'}`}>{label}</div>
       <ul className="ml-4 list-disc space-y-0.5">{items.map((x, i) => <li key={i}>{x}</li>)}</ul>
     </div>
   )
@@ -52,15 +52,15 @@ function List({ label, items, tone }: { label: string; items: string[]; tone?: s
 const Quote = ({ text, agent }: { text: string; agent: keyof typeof AGENTS }) => {
   const a = AGENTS[agent]
   return (
-    <div className="flex items-start gap-2">
+    <div className="quote-row flex items-start gap-2">
       <AgentAvatar agent={agent} name={a.name} initials={a.initials} bg={a.avatar} size="h-9 w-9 text-xs" />
-      <p className="min-w-0 flex-1 rounded-lg bg-white/60 px-3 py-2 italic dark:bg-black/20">„{text}”</p>
+      <p className="quote min-w-0 flex-1 rounded-lg bg-white/60 px-3 py-2 italic dark:bg-black/20">„{text}”</p>
     </div>
   )
 }
 
 const Warn = ({ children }: { children: ReactNode }) => (
-  <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">⚠ {children}</span>
+  <span className="chip chip-warn rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">⚠ {children}</span>
 )
 
 const BAR_LABELS: [keyof Omit<ScoreBreakdown, 'knockout' | 'knockout_reason'>, string, number][] = [
@@ -72,16 +72,16 @@ function Breakdown({ b }: { b: ScoreBreakdown }) {
     <div className="space-y-1.5">
       <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Scor pe componente</div>
       {BAR_LABELS.map(([key, label, max]) => (
-        <div key={key} className="grid grid-cols-[7.5rem_1fr_3rem] items-center gap-2 text-xs" title={`${label}: ${b[key]} din ${max}`}>
+        <div key={key} className="bar grid grid-cols-[7.5rem_1fr_3rem] items-center gap-2 text-xs" title={`${label}: ${b[key]} din ${max}`}>
           <span className="truncate">{label}</span>
-          <div className="h-2 overflow-hidden rounded-full bg-indigo-200/70 dark:bg-indigo-900/60" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={max} aria-valuenow={b[key]}>
-            <div className="h-full rounded-full bg-indigo-600 dark:bg-indigo-400" style={{ width: `${(b[key] / max) * 100}%` }} />
+          <div className="track h-2 overflow-hidden rounded-full bg-indigo-200/70 dark:bg-indigo-900/60" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={max} aria-valuenow={b[key]}>
+            <div className="fill h-full rounded-full bg-indigo-600 dark:bg-indigo-400" style={{ width: `${(b[key] / max) * 100}%` }} />
           </div>
           <span className="text-right tabular-nums text-slate-600 dark:text-slate-300">{b[key]}/{max}</span>
         </div>
       ))}
       {b.knockout && (
-        <div className="mt-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white">
+        <div className="knockout mt-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white">
           ⛔ KNOCKOUT: {b.knockout_reason}
         </div>
       )}
@@ -90,11 +90,11 @@ function Breakdown({ b }: { b: ScoreBreakdown }) {
 }
 
 const Stale = ({ children }: { children: ReactNode }) => (
-  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">🕓 {children}</span>
+  <span className="chip chip-stale rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">🕓 {children}</span>
 )
 
 const Chip = ({ children }: { children: ReactNode }) => (
-  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">{children}</span>
+  <span className="chip rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">{children}</span>
 )
 
 export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatus: (s: Status) => void; onReload: () => void }) {
@@ -126,8 +126,8 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
 
   const btn = (s: Status, label: string, active: string) => (
     <button
-      onClick={() => onStatus(s)}
-      className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+      onClick={() => onStatus(s)} aria-pressed={job.status === s}
+      className={`btn rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
         job.status === s ? active : 'border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800'
       }`}
     >
@@ -136,32 +136,32 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
   )
 
   return (
-    <article className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${dim}`}>
+    <article className={`job ${open ? 'is-open' : ''} rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${dim}`}>
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            {ev ? <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${VERDICT_STYLE[ev.verdict]}`}>{ev.verdict}</span>
-                : <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">NEEVALUAT</span>}
+            {ev ? <span className={`badge v-${ev.verdict.toLowerCase()} rounded-md px-2 py-0.5 text-xs font-bold ${VERDICT_STYLE[ev.verdict]}`}>{ev.verdict}</span>
+                : <span className="badge v-none rounded-md bg-slate-200 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">NEEVALUAT</span>}
             {ev?.verdict_manual && <Chip>manual (Vadim: {ev.original_verdict})</Chip>}
             {waitingTzanca && <Chip>sugestii CV cerute (Tzanca)…</Chip>}
-            {ev?.score_breakdown?.knockout && <span className="rounded-md bg-red-600 px-2 py-0.5 text-xs font-bold text-white">KNOCKOUT</span>}
+            {ev?.score_breakdown?.knockout && <span className="badge v-knockout rounded-md bg-red-600 px-2 py-0.5 text-xs font-bold text-white">KNOCKOUT</span>}
             {job.status !== 'new' && <Chip>{STATUS_LABEL[job.status]}</Chip>}
             {ev?.stale_cv && <Stale>evaluat pe CV vechi</Stale>}
             {ev?.stale_profile && <Stale>evaluat pe profil vechi</Stale>}
             {job.source === 'seed' && <Chip>test</Chip>}
           </div>
-          <h2 className="mt-1 text-base font-semibold leading-snug sm:text-lg">{job.title}</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400">{job.company}{job.location ? ` · ${job.location}` : ''}</p>
+          <h2 className="job-title mt-1 text-base font-semibold leading-snug sm:text-lg">{job.title}</h2>
+          <p className="job-meta text-sm text-slate-600 dark:text-slate-400">{job.company}{job.location ? ` · ${job.location}` : ''}</p>
         </div>
         {ev && (
-          <div className="text-right">
-            <div className={`text-3xl font-bold tabular-nums leading-none ${SCORE_STYLE[ev.verdict]}`}>{ev.score}</div>
-            <div className="text-[10px] uppercase tracking-wide text-slate-500">scor</div>
+          <div className="score text-right">
+            <div className={`score-n text-3xl font-bold tabular-nums leading-none ${SCORE_STYLE[ev.verdict]}`}>{ev.score}</div>
+            <div className="score-l text-[10px] uppercase tracking-wide text-slate-500">scor</div>
           </div>
         )}
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <div className="chips mt-2 flex flex-wrap items-center gap-1.5">
         <Chip>{REMOTE_LABEL[job.remote]}</Chip>
         {job.salary && <Chip>💰 {job.salary}</Chip>}
         <Chip>📅 {job.posted_date ?? 'dată necunoscută'}</Chip>
@@ -169,9 +169,9 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
         {!job.verified_date && <Warn>dată neverificată</Warn>}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="actions mt-3 flex flex-wrap items-center gap-2">
         <a href={job.url} target="_blank" rel="noopener noreferrer"
-           className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300">
+           className="btn btn-solid rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300">
           Vezi anunțul ↗
         </a>
         {btn('applied', 'Aplicat', 'border-emerald-600 bg-emerald-600 text-white')}
@@ -180,25 +180,27 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
         {ev && ev.verdict !== 'APPLY' && (
           <button onClick={() => changeVerdict('APPLY')} disabled={busy}
             title="Schimbă verdictul în APPLY și cere lui Tzanca sugestii de CV"
-            className="rounded-lg border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 dark:text-emerald-400 dark:hover:bg-emerald-950">
+            className="btn btn-apply rounded-lg border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 dark:text-emerald-400 dark:hover:bg-emerald-950">
             ↑ Marchează APPLY
           </button>
         )}
         {ev?.verdict_manual && ev.original_verdict && (
           <button onClick={() => changeVerdict(ev.original_verdict!)} disabled={busy}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800">
+            className="btn rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800">
             ↩ Înapoi la {ev.original_verdict}
           </button>
         )}
-        <button onClick={toggle} className="ml-auto text-sm text-slate-500 underline-offset-2 hover:underline" aria-expanded={open}>
-          {open ? 'Ascunde detalii ▲' : 'Detalii ▼'}
+        <button onClick={toggle} className="btn btn-ghost toggle ml-auto text-sm text-slate-500 underline-offset-2 hover:underline" aria-expanded={open}>
+          {open ? 'Ascunde detalii' : 'Detalii'} <span className="chev" aria-hidden="true">▼</span>
         </button>
       </div>
 
-      {open && (
-        <div className="mt-4 space-y-3">
-          <section className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Descrierea anunțului</div>
+      {/* detaliile rămân în DOM: se animă din CSS (grid-template-rows 0fr -> 1fr), iar `inert` le scoate din tab/cititor cât sunt închise */}
+      <div className="details" inert={!open}>
+       <div>
+        <div className="details-in mt-4 space-y-3">
+          <section className="box desc rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+            <div className="label mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Descrierea anunțului</div>
             {description === undefined ? <p className="text-sm text-slate-500">Se încarcă…</p>
               : description ? <p className="max-h-56 overflow-auto whitespace-pre-wrap text-sm">{description}</p>
               : <p className="text-sm text-slate-500">Durian nu a trimis descrierea.</p>}
@@ -217,9 +219,11 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
                   </p>
                 )}
                 {ev.score_breakdown && <Breakdown b={ev.score_breakdown} />}
-                <List label="Se potrivește" items={ev.match} tone="text-emerald-700 dark:text-emerald-400" />
-                <List label="Lipsește" items={ev.missing} tone="text-amber-700 dark:text-amber-400" />
-                <List label="Semnale de alarmă" items={ev.red_flags} tone="text-red-700 dark:text-red-400" />
+                <div className="lists space-y-2">
+                  <List kind="fit" label="Se potrivește" items={ev.match} tone="text-emerald-700 dark:text-emerald-400" />
+                  <List kind="miss" label="Lipsește" items={ev.missing} tone="text-amber-700 dark:text-amber-400" />
+                </div>
+                <List kind="flag" label="Semnale de alarmă" items={ev.red_flags} tone="text-red-700 dark:text-red-400" />
                 {ev.vadim_comment && <Quote agent="vadim" text={ev.vadim_comment} />}
               </>
             ) : <p className="text-slate-500">Încă neevaluat.</p>}
@@ -233,7 +237,7 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Keywords</div>
                   <div className="mt-1 flex flex-wrap gap-1">
-                    {cv.keywords_added.map((k, i) => <span key={i} className="rounded-full bg-teal-600/15 px-2 py-0.5 text-xs text-teal-800 dark:text-teal-200">{k}</span>)}
+                    {cv.keywords_added.map((k, i) => <span key={i} className="chip chip-kw rounded-full bg-teal-600/15 px-2 py-0.5 text-xs text-teal-800 dark:text-teal-200">{k}</span>)}
                   </div>
                 </div>
               )}
@@ -243,11 +247,12 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
           )}
           {ev && (
             <div className="flex justify-end">
-              <button onClick={reevaluate} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">↻ Reevaluează</button>
+              <button onClick={reevaluate} className="btn rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">↻ Reevaluează</button>
             </div>
           )}
         </div>
-      )}
+       </div>
+      </div>
     </article>
   )
 }

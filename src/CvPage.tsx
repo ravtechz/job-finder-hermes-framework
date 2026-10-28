@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { deleteCv, fetchCv, reevaluateActive, uploadCvFile, uploadCvText, type CvInfo } from './api'
 
-const btn = 'rounded-lg border px-3 py-1.5 text-sm font-medium transition disabled:opacity-50'
+const btn = 'btn rounded-lg border px-3 py-1.5 text-sm font-medium transition disabled:opacity-50'
 const ghost = `${btn} border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800`
 
 export default function CvPage() {
@@ -69,7 +69,7 @@ export default function CvPage() {
           <summary className="cursor-pointer text-sm text-slate-600 dark:text-slate-400">Sau lipește textul CV-ului</summary>
           <textarea value={pasted} onChange={(e) => setPasted(e.target.value)} rows={8} placeholder="Lipește textul CV-ului aici…"
                     className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm dark:border-slate-700 dark:bg-slate-950" />
-          <button className={`${btn} mt-2 border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-500`} disabled={busy || pasted.trim().length < 20}
+          <button className={`${btn} btn-accent mt-2 border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-500`} disabled={busy || pasted.trim().length < 20}
                   onClick={() => run(() => uploadCvText(pasted), 'CV salvat din text.').then(() => setPasted(''))}>Salvează textul</button>
         </details>
 
@@ -85,7 +85,7 @@ export default function CvPage() {
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Șterge evaluările și sugestiile de CV ale joburilor active (status Nou sau Văzut) ca agenții să le refacă pe CV-ul de acum. Joburile marcate Aplicat sau Ignorat nu se ating.
           </p>
-          <button className={`${btn} mt-3 border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-500`} disabled={busy}
+          <button className={`${btn} btn-accent mt-3 border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-500`} disabled={busy}
                   onClick={async () => {
                     setBusy(true); setMsg(null)
                     try {

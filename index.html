@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <title>Job Dashboard</title>
+    <script>
+      // tema se aplică înainte de prima afișare, ca să nu apară o clipire din tema greșită
+      (function () {
+        var d = document.documentElement
+        try {
+          var t = localStorage.getItem('jd-theme') === 'severance' ? 'severance' : 'basic'
+          d.dataset.theme = t
+          if (t === 'severance' || matchMedia('(prefers-color-scheme: dark)').matches) d.classList.add('dark')
+        } catch (e) { d.dataset.theme = 'basic' }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

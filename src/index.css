@@ -1,4 +1,36 @@
 @import "tailwindcss";
+@import "./severance.css";
 
-:root { color-scheme: light dark; }
+/* `dark:` urmărește clasa .dark de pe <html> (pusă de src/theme.tsx): Basic ca sistemul, Severance mereu */
+@custom-variant dark (&:where(.dark, .dark *));
+
+html { color-scheme: light; }
+html.dark { color-scheme: dark; }
 body { @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100; }
+
+/* Structura paginii: titlu, meniu și conținut ca zone de grilă, ca fiecare temă să le aranjeze cum vrea */
+.app { margin-inline: auto; max-width: 48rem; padding: 1.25rem 1rem; display: grid; gap: 0.75rem 1rem;
+  grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "top side" "main main"; }
+.app-top { grid-area: top; min-width: 0; }
+.app-side { grid-area: side; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+.app-main { grid-area: main; min-width: 0; margin-top: 0.25rem; }
+@media (max-width: 639px) {
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "side" "main"; }
+  .app-side { align-items: flex-start; }
+}
+[data-theme="severance"] .basic-only { display: none !important; }
+[data-theme="basic"] .sev-only { display: none !important; }
+
+/* comutatorul de temă */
+.theme-switch { display: flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; }
+.theme-switch-label { @apply text-slate-500 dark:text-slate-400; margin-right: 0.25rem; }
+.theme-switch button { @apply rounded-md border border-slate-300 px-2 py-0.5 text-slate-600 dark:border-slate-700 dark:text-slate-300; }
+.theme-switch button[aria-pressed="true"] { @apply border-indigo-600 bg-indigo-600 text-white; }
+
+/* detaliile jobului: mereu în DOM, deschise/închise animat (înălțime auto, fără măsurare în JS) */
+.details { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .55s cubic-bezier(.4, 0, .2, 1), opacity .45s ease; }
+.is-open > .details { grid-template-rows: 1fr; opacity: 1; }
+.details > div { min-height: 0; overflow: hidden; }
+.chev { display: inline-block; transition: transform .45s cubic-bezier(.4, 0, .2, 1); }
+.is-open .chev { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .details, .chev { transition: none; } }
