@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 
-export type AgentKey = 'durian' | 'vadim' | 'tzanca'
+export type AgentKey = 'durian' | 'vadim' | 'tzanca' | 'milchick'
 type Versions = Partial<Record<AgentKey, string | null>>
 
 const Ctx = createContext<{ versions: Versions; reload: () => void }>({ versions: {}, reload: () => {} })

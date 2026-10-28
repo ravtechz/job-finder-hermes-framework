@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchJobs, fetchStats, setStatus } from './api'
 import AgentsPage from './AgentsPage'
+import { AgentAvatar } from './avatars'
 import CvPage from './CvPage'
 import JobCard from './JobCard'
 import ProfilePage from './ProfilePage'
@@ -56,14 +57,18 @@ export default function App() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-5">
-      <header className="mb-4 flex items-start justify-between gap-3">
+      <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-bold sm:text-2xl">
             {page === 'cv' ? 'CV' : page === 'profile' ? 'Profil' : page === 'agents' ? 'Agenți' : filters.mode === 'week' ? 'Ultimele 7 zile' : isToday ? 'Azi' : filters.date}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Joburi găsite de Durian, evaluate de Vadim, pregătite de Tzanca.</p>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+            <AgentAvatar agent="milchick" name="Domnu Milchick" initials="DM" bg="bg-slate-700" size="h-5 w-5 text-[9px]" />
+            Sub supravegherea lui Domnu Milchick
+          </p>
         </div>
-        <nav className="flex shrink-0 gap-1 rounded-xl bg-slate-200 p-1 text-sm dark:bg-slate-800">
+        <nav className="flex shrink-0 gap-1 self-start rounded-xl bg-slate-200 p-1 text-sm dark:bg-slate-800">
           {([['jobs', 'Joburi'], ['cv', 'CV'], ['profile', 'Profil'], ['agents', 'Agenți']] as const).map(([k, label]) => (
             <button key={k} onClick={() => setPage(k)}
                     className={`rounded-lg px-3 py-1 font-medium ${page === k ? 'bg-white shadow dark:bg-slate-600' : 'text-slate-600 dark:text-slate-300'}`}>{label}</button>

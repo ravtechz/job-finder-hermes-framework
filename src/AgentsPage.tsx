@@ -3,6 +3,7 @@ import { deleteAvatar, uploadAvatar } from './api'
 import { AgentAvatar, useAvatars, type AgentKey } from './avatars'
 
 const AGENTS: { key: AgentKey; name: string; role: string; initials: string; bg: string }[] = [
+  { key: 'milchick', name: 'Domnu Milchick', role: 'Supervizor al departamentului', initials: 'DM', bg: 'bg-slate-700' },
   { key: 'durian', name: 'Durian Popa', role: 'Găsește joburi', initials: 'DP', bg: 'bg-fuchsia-600' },
   { key: 'vadim', name: 'Vadim Sudor', role: 'Evaluează joburile', initials: 'VS', bg: 'bg-indigo-600' },
   { key: 'tzanca', name: 'Tzanca Ciocanu', role: 'Ajustează CV-ul', initials: 'TC', bg: 'bg-teal-600' },
@@ -69,7 +70,7 @@ export default function AgentsPage() {
   return (
     <div className="space-y-3">
       <p className="text-sm text-slate-500 dark:text-slate-400">
-        Poza fiecărui agent apare în cardurile joburilor, lângă comentariile și sugestiile lui. Imaginea se decupează pătrat din centru. PNG, JPEG, WebP sau GIF (GIF-ul devine imagine statică).
+        Poza fiecărui agent apare în cardurile joburilor, lângă comentariile și sugestiile lui. Domnu Milchick, care nu comentează joburi, apare în antetul dashboard-ului. Imaginea se decupează pătrat din centru. PNG, JPEG, WebP sau GIF (GIF-ul devine imagine statică).
       </p>
       {AGENTS.map((a) => <AgentCard key={a.key} a={a} />)}
     </div>

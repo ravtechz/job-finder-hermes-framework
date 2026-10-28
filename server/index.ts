@@ -391,7 +391,7 @@ api.get('/stats', wrap((req, res) => {
 }))
 
 // ---------- poze pentru agenți (doar din UI; agenții nu au acces) ----------
-const AVATAR_AGENTS = ['durian', 'vadim', 'tzanca'] as const
+const AVATAR_AGENTS = ['durian', 'vadim', 'tzanca', 'milchick'] as const
 const AVATAR_MAX = 2 * 1024 * 1024
 // parserul acceptă până la 10 MB ca să putem răspunde clar „peste 2 MB”; verificarea reală e în rută
 const avatarBody = express.raw({ type: () => true, limit: 10 * 1024 * 1024 })
@@ -407,7 +407,7 @@ function sniffImage(b: Buffer): string | null {
 
 function avatarAgent(param: unknown) {
   const a = String(param)
-  if (!(AVATAR_AGENTS as readonly string[]).includes(a)) throw new HttpError(404, 'Agent necunoscut. Folosește: durian, vadim, tzanca.', { code: 'agent_not_found' })
+  if (!(AVATAR_AGENTS as readonly string[]).includes(a)) throw new HttpError(404, 'Agent necunoscut. Folosește: durian, vadim, tzanca, milchick.', { code: 'agent_not_found' })
   return a
 }
 

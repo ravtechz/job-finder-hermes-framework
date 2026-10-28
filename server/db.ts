@@ -59,7 +59,7 @@ export function openDb(file = process.env.DB_PATH || './data/jobs.db') {
       updated_at TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS agent_avatars (
-      agent TEXT PRIMARY KEY CHECK (agent IN ('durian','vadim','tzanca')),
+      agent TEXT PRIMARY KEY,
       mime TEXT NOT NULL,
       image BLOB NOT NULL,
       updated_at TEXT NOT NULL
@@ -78,6 +78,19 @@ export function openDb(file = process.env.DB_PATH || './data/jobs.db') {
   addColumn('evaluations', 'original_verdict', 'TEXT') // verdictul lui Vadim, doar dacă utilizatorul l-a schimbat manual
   addColumn('evaluations', 'cv_requested_at', 'TEXT') // când a cerut utilizatorul sugestii CV de la Tzanca (din UI)
   addColumn('cv_suggestions', 'cv_uploaded_at', 'TEXT')
+
+  // agent_avatars a fost creată întâi cu CHECK pe trei agenți; lista agenților e validată acum în cod (a apărut Milchick).
+  // SQLite nu poate schimba un CHECK, deci tabela se reface, cu datele păstrate.
+  const avatarsSql = (db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'agent_avatars'").get() as { sql: string }).sql
+  if (/CHECK/i.test(avatarsSql)) {
+    db.transaction(() => {
+      db.exec(`
+        CREATE TABLE agent_avatars_new (agent TEXT PRIMARY KEY, mime TEXT NOT NULL, image BLOB NOT NULL, updated_at TEXT NOT NULL);
+        INSERT INTO agent_avatars_new SELECT agent, mime, image, updated_at FROM agent_avatars;
+        DROP TABLE agent_avatars;
+        ALTER TABLE agent_avatars_new RENAME TO agent_avatars;`)
+    })()
+  }
   return db
 }
 

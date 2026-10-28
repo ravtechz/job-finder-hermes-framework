@@ -92,8 +92,8 @@ curl -X POST --data-binary @cv.pdf -H 'Content-Type: application/pdf' "http://12
 ```
 
 ## Poze pentru agenți
-Din tab-ul **Agenți** poți încărca o poză pentru Durian, Vadim și Tzanca (PNG, JPEG, WebP sau GIF, până la 2 MB). Browserul o decupează pătrat din centru și o micșorează la 256 px înainte de încărcare (un GIF devine imagine statică). Poza apare în cardul fiecărui job: în antetul secțiunii agentului și lângă comentariile și sugestiile lui; fără poză rămân inițialele. Pozele sunt în `data/jobs.db`, deci intră în backup.
-- **API (doar din UI, agenții primesc 403):** `GET /api/avatars` (care agenți au poză), `GET|PUT|DELETE /api/avatars/:agent` cu `:agent` = `durian`, `vadim` sau `tzanca`. Din linia de comandă: `curl -X PUT -H 'Content-Type: image/png' --data-binary @poza.png http://127.0.0.1:3333/api/avatars/vadim`.
+Din tab-ul **Agenți** poți încărca o poză pentru Durian, Vadim, Tzanca și Domnu Milchick (PNG, JPEG, WebP sau GIF, până la 2 MB). Browserul o decupează pătrat din centru și o micșorează la 256 px înainte de încărcare (un GIF devine imagine statică). Poza apare în cardul fiecărui job: în antetul secțiunii agentului și lângă comentariile și sugestiile lui; fără poză rămân inițialele. Milchick nu comentează joburi, deci poza lui apare în antetul dashboard-ului (sub titlu). Pozele sunt în `data/jobs.db`, deci intră în backup.
+- **API (doar din UI, agenții primesc 403):** `GET /api/avatars` (care agenți au poză), `GET|PUT|DELETE /api/avatars/:agent` cu `:agent` = `durian`, `vadim`, `tzanca` sau `milchick`. Din linia de comandă: `curl -X PUT -H 'Content-Type: image/png' --data-binary @poza.png http://127.0.0.1:3333/api/avatars/vadim`.
 - **Securitate:** formatul se verifică după conținutul fișierului, nu după ce declară clientul; SVG e refuzat (poate conține scripturi); pozele se servesc cu `nosniff` și cu o politică CSP care interzice orice conținut activ.
 
 ## Profil, evaluări și reevaluare
