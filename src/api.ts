@@ -69,6 +69,19 @@ export async function setVerdict(jobId: string, verdict: Verdict) {
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
 }
 
+export async function uploadAvatar(agent: string, image: Blob) {
+  const r = await fetch(`/api/avatars/${agent}`, { method: 'PUT', headers: { 'Content-Type': image.type }, body: image })
+  if (!r.ok) {
+    const b = await r.json().catch(() => null)
+    throw new Error(b?.message ?? `HTTP ${r.status}`)
+  }
+}
+
+export async function deleteAvatar(agent: string) {
+  const r = await fetch(`/api/avatars/${agent}`, { method: 'DELETE' })
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+}
+
 export async function reevaluateJob(jobId: string) {
   const r = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/reevaluate`, { method: 'POST' })
   if (!r.ok) throw new Error(`HTTP ${r.status}`)

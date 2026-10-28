@@ -390,6 +390,60 @@ api.get('/stats', wrap((req, res) => {
   })
 }))
 
+// ---------- poze pentru agenți (doar din UI; agenții nu au acces) ----------
+const AVATAR_AGENTS = ['durian', 'vadim', 'tzanca'] as const
+const AVATAR_MAX = 2 * 1024 * 1024
+// parserul acceptă până la 10 MB ca să putem răspunde clar „peste 2 MB”; verificarea reală e în rută
+const avatarBody = express.raw({ type: () => true, limit: 10 * 1024 * 1024 })
+
+/** Tipul real după primii octeți, nu după ce declară clientul. SVG nu e acceptat: poate conține scripturi. */
+function sniffImage(b: Buffer): string | null {
+  if (b.length > 12 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png'
+  if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg'
+  if (b.length > 12 && b.toString('latin1', 0, 4) === 'RIFF' && b.toString('latin1', 8, 12) === 'WEBP') return 'image/webp'
+  if (b.length > 6 && b.toString('latin1', 0, 4) === 'GIF8') return 'image/gif'
+  return null
+}
+
+function avatarAgent(param: unknown) {
+  const a = String(param)
+  if (!(AVATAR_AGENTS as readonly string[]).includes(a)) throw new HttpError(404, 'Agent necunoscut. Folosește: durian, vadim, tzanca.', { code: 'agent_not_found' })
+  return a
+}
+
+api.get('/avatars', wrap((_req, res) => {
+  const rows = db.prepare('SELECT agent, updated_at FROM agent_avatars').all() as Row[]
+  res.json(Object.fromEntries(AVATAR_AGENTS.map((a) => [a, rows.find((r) => r.agent === a)?.updated_at ?? null])))
+}))
+
+api.get('/avatars/:agent', wrap((req, res) => {
+  const agent = avatarAgent(req.params.agent)
+  const r = db.prepare('SELECT mime, image, updated_at FROM agent_avatars WHERE agent = ?').get(agent) as Row | undefined
+  if (!r) throw new HttpError(404, 'Agentul nu are poză.', { code: 'avatar_not_found' })
+  // URL-ul din UI poartă ?v=updated_at, deci poate fi păstrat în cache fără risc de poză veche
+  res.set({ 'Content-Type': r.mime, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'private, max-age=86400', 'Content-Security-Policy': "default-src 'none'" })
+  res.send(r.image)
+}))
+
+api.put('/avatars/:agent', avatarBody, wrap((req, res) => {
+  const agent = avatarAgent(req.params.agent)
+  const body = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0)
+  if (!body.length) throw new HttpError(400, 'Trimite imaginea ca body (PNG, JPEG, WebP sau GIF), cu Content-Type: image/...', { code: 'empty_body' })
+  if (body.length > AVATAR_MAX) throw new HttpError(413, 'Poza depășește 2 MB.', { code: 'too_large' })
+  const mime = sniffImage(body)
+  if (!mime) throw new HttpError(415, 'Format nesuportat. Folosește PNG, JPEG, WebP sau GIF (SVG nu e permis).', { code: 'unsupported_format' })
+  const at = now()
+  db.prepare(`INSERT INTO agent_avatars (agent, mime, image, updated_at) VALUES (?, ?, ?, ?)
+    ON CONFLICT(agent) DO UPDATE SET mime = excluded.mime, image = excluded.image, updated_at = excluded.updated_at`).run(agent, mime, body, at)
+  res.json({ ok: true, agent, mime, size: body.length, updated_at: at })
+}))
+
+api.delete('/avatars/:agent', wrap((req, res) => {
+  const agent = avatarAgent(req.params.agent)
+  db.prepare('DELETE FROM agent_avatars WHERE agent = ?').run(agent)
+  res.json({ ok: true, agent })
+}))
+
 // ---------- CV (unic; îl citesc Vadim și Tzanca) ----------
 const CV_MAX = 10 * 1024 * 1024
 const rawBody = express.raw({ type: (req) => !String(req.headers['content-type'] ?? '').includes('json'), limit: CV_MAX })

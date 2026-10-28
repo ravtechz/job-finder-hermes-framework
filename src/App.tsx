@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchJobs, fetchStats, setStatus } from './api'
+import AgentsPage from './AgentsPage'
 import CvPage from './CvPage'
 import JobCard from './JobCard'
 import ProfilePage from './ProfilePage'
@@ -24,7 +25,7 @@ export default function App() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState<'jobs' | 'cv' | 'profile'>('jobs')
+  const [page, setPage] = useState<'jobs' | 'cv' | 'profile' | 'agents'>('jobs')
 
   const load = useCallback(async () => {
     try {
@@ -58,19 +59,19 @@ export default function App() {
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold sm:text-2xl">
-            {page === 'cv' ? 'CV' : page === 'profile' ? 'Profil' : filters.mode === 'week' ? 'Ultimele 7 zile' : isToday ? 'Azi' : filters.date}
+            {page === 'cv' ? 'CV' : page === 'profile' ? 'Profil' : page === 'agents' ? 'Agenți' : filters.mode === 'week' ? 'Ultimele 7 zile' : isToday ? 'Azi' : filters.date}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Joburi găsite de Durian, evaluate de Vadim, pregătite de Tzanca.</p>
         </div>
         <nav className="flex shrink-0 gap-1 rounded-xl bg-slate-200 p-1 text-sm dark:bg-slate-800">
-          {([['jobs', 'Joburi'], ['cv', 'CV'], ['profile', 'Profil']] as const).map(([k, label]) => (
+          {([['jobs', 'Joburi'], ['cv', 'CV'], ['profile', 'Profil'], ['agents', 'Agenți']] as const).map(([k, label]) => (
             <button key={k} onClick={() => setPage(k)}
                     className={`rounded-lg px-3 py-1 font-medium ${page === k ? 'bg-white shadow dark:bg-slate-600' : 'text-slate-600 dark:text-slate-300'}`}>{label}</button>
           ))}
         </nav>
       </header>
 
-      {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : <>
+      {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : page === 'agents' ? <AgentsPage /> : <>
 
       <div className="mb-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
         <Stat label={filters.mode === 'week' ? 'Noi (7 zile)' : isToday ? 'Noi azi' : 'Noi în zi'} value={stats?.new_jobs ?? '–'} tone="" />

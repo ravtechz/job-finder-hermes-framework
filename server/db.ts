@@ -58,6 +58,12 @@ export function openDb(file = process.env.DB_PATH || './data/jobs.db') {
       data TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS agent_avatars (
+      agent TEXT PRIMARY KEY CHECK (agent IN ('durian','vadim','tzanca')),
+      mime TEXT NOT NULL,
+      image BLOB NOT NULL,
+      updated_at TEXT NOT NULL
+    );
   `)
 
   // Migrări pentru baze create înainte de aceste câmpuri
