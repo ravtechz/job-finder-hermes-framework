@@ -22,7 +22,9 @@ const AGENTS = {
   tzanca: { name: 'Tzanca Ciocanu', role: 'Ajustează CV-ul', initials: 'TC', box: 'border-teal-300 bg-teal-50 dark:border-teal-800 dark:bg-teal-950/40', avatar: 'bg-teal-600', title: 'text-teal-700 dark:text-teal-300' },
 }
 
-function AgentSection({ agent, children }: { agent: keyof typeof AGENTS; children: ReactNode }) {
+const fmtWhen = (iso?: string | null) => iso ? new Date(iso).toLocaleString('ro-RO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''
+
+function AgentSection({ agent, when, children }: { agent: keyof typeof AGENTS; when?: string | null; children: ReactNode }) {
   const a = AGENTS[agent]
   return (
     <section className={`box ${agent} rounded-xl border p-3 ${a.box}`}>
@@ -32,6 +34,7 @@ function AgentSection({ agent, children }: { agent: keyof typeof AGENTS; childre
           <div className={`nm text-sm font-semibold ${a.title}`}>{a.name}</div>
           <div className="rl text-xs text-slate-500 dark:text-slate-400">{a.role}</div>
         </div>
+        {when && <span className="sw-only when" title={when}>{fmtWhen(when)}</span>}
       </div>
       <div className="space-y-2 text-sm">{children}</div>
     </section>
@@ -126,7 +129,7 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
 
   const btn = (s: Status, label: string, active: string) => (
     <button
-      onClick={() => onStatus(s)} aria-pressed={job.status === s}
+      onClick={() => onStatus(s)} aria-pressed={job.status === s} data-s={s}
       className={`btn rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
         job.status === s ? active : 'border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800'
       }`}
@@ -136,7 +139,7 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
   )
 
   return (
-    <article className={`job ${open ? 'is-open' : ''} rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${dim}`}>
+    <article data-verdict={ev?.verdict ?? 'none'} className={`job ${open ? 'is-open' : ''} rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${dim}`}>
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -155,7 +158,7 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
         </div>
         {ev && (
           <div className="score text-right">
-            <div className={`score-n text-3xl font-bold tabular-nums leading-none ${SCORE_STYLE[ev.verdict]}`}>{ev.score}</div>
+            <div className={`score-n v-${ev.verdict.toLowerCase()} text-3xl font-bold tabular-nums leading-none ${SCORE_STYLE[ev.verdict]}`}>{ev.score}</div>
             <div className="score-l text-[10px] uppercase tracking-wide text-slate-500">scor</div>
           </div>
         )}
@@ -206,11 +209,11 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
               : <p className="text-sm text-slate-500">Durian nu a trimis descrierea.</p>}
           </section>
 
-          <AgentSection agent="durian">
+          <AgentSection agent="durian" when={job.found_at}>
             {job.durian_comment ? <Quote agent="durian" text={job.durian_comment} /> : <p className="text-slate-500">Fără comentariu.</p>}
           </AgentSection>
 
-          <AgentSection agent="vadim">
+          <AgentSection agent="vadim" when={ev?.evaluated_at}>
             {ev ? (
               <>
                 {(ev.stale_cv || ev.stale_profile) && (
@@ -230,7 +233,7 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
           </AgentSection>
 
           {cv && (
-            <AgentSection agent="tzanca">
+            <AgentSection agent="tzanca" when={cv.created_at}>
               {cv.stale_cv && <Stale>sugestii făcute pe CV vechi</Stale>}
               <List label="Modificări CV" items={cv.cv_changes} />
               {cv.keywords_added.length > 0 && (

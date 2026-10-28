@@ -395,6 +395,23 @@ api.get('/stats', wrap((req, res) => {
 // WORKING_WINDOW_S secunde; Tzanca e și la birou când există o cerere de sugestii (butonul „Marchează APPLY”) încă nerezolvată.
 // Pentru o stare exactă de rulare ar trebui integrat Hermes (jurnalul de sesiuni), ceea ce nu facem aici.
 const WORKING_WINDOW_S = 300
+// o „rulare” = evenimente ale aceluiași agent separate de mai puțin de RUN_GAP_S; o pauză mai lungă începe o rulare nouă
+const RUN_GAP_S = 600
+const RUNS_SHOWN = 5
+const FEED_SIZE = 15
+
+/** Grupează momentele (descrescător) în rulări: [{start, end, count}], cele mai recente primele. */
+function groupRuns(times: string[]) {
+  const runs: { startMs: number; endMs: number; count: number }[] = []
+  for (const t of times) {
+    const ms = Date.parse(t)
+    const cur = runs[runs.length - 1]
+    if (cur && cur.startMs - ms <= RUN_GAP_S * 1000) { cur.startMs = ms; cur.count++; continue }
+    if (runs.length === RUNS_SHOWN) break
+    runs.push({ startMs: ms, endMs: ms, count: 1 })
+  }
+  return runs.map((r) => ({ start: new Date(r.startMs).toISOString(), end: new Date(r.endMs).toISOString(), count: r.count }))
+}
 
 api.get('/agents/activity', wrap((_req, res) => {
   const last = (sql: string) => db.prepare(sql).get() as Row | undefined
@@ -409,18 +426,36 @@ api.get('/agents/activity', wrap((_req, res) => {
     LEFT JOIN cv_suggestions c ON c.job_id = e.job_id
     WHERE e.verdict = 'APPLY' AND e.cv_requested_at IS NOT NULL AND c.job_id IS NULL ORDER BY e.cv_requested_at DESC`).all() as Row[]
 
+  const times = (sql: string) => (db.prepare(sql).all() as Row[]).map((r) => r.at as string)
+  const runs = {
+    durian: groupRuns(times('SELECT found_at AS at FROM jobs ORDER BY found_at DESC LIMIT 500')),
+    vadim: groupRuns(times('SELECT evaluated_at AS at FROM evaluations ORDER BY evaluated_at DESC LIMIT 500')),
+    tzanca: groupRuns(times('SELECT created_at AS at FROM cv_suggestions ORDER BY created_at DESC LIMIT 500')),
+  }
+  // jurnalul: ultimele evenimente ale tuturor agenților
+  const feed = [
+    ...(db.prepare(`SELECT 'durian' AS agent, 'job' AS kind, found_at AS at, title, company, NULL AS detail FROM jobs ORDER BY found_at DESC LIMIT ${FEED_SIZE}`).all() as Row[]),
+    ...(db.prepare(`SELECT 'vadim' AS agent, 'evaluation' AS kind, e.evaluated_at AS at, j.title, j.company, e.verdict || ' · ' || e.score AS detail
+      FROM evaluations e JOIN jobs j ON j.job_id = e.job_id ORDER BY e.evaluated_at DESC LIMIT ${FEED_SIZE}`).all() as Row[]),
+    ...(db.prepare(`SELECT 'tzanca' AS agent, 'suggestion' AS kind, c.created_at AS at, j.title, j.company, NULL AS detail
+      FROM cv_suggestions c JOIN jobs j ON j.job_id = c.job_id ORDER BY c.created_at DESC LIMIT ${FEED_SIZE}`).all() as Row[]),
+  ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, FEED_SIZE)
+
   res.json({
     now: now(),
     working_window_seconds: WORKING_WINDOW_S,
+    run_gap_seconds: RUN_GAP_S,
     agents: {
-      durian: { ...durian, working: fresh(durian.last_at), pending_requests: 0 },
-      vadim: { ...vadim, working: fresh(vadim.last_at), pending_requests: 0 },
+      durian: { ...durian, working: fresh(durian.last_at), pending_requests: 0, runs: runs.durian },
+      vadim: { ...vadim, working: fresh(vadim.last_at), pending_requests: 0, runs: runs.vadim },
       tzanca: {
         ...(pending.length ? shape(pending[0]) : tzanca),
         working: pending.length > 0 || fresh(tzanca.last_at),
         pending_requests: pending.length,
+        runs: runs.tzanca,
       },
     },
+    recent: feed,
   })
 }))
 

@@ -351,3 +351,17 @@
 [data-theme="severance"] .acard .btn { align-self: flex-start; margin-top: 8px; }
 [data-theme="severance"] .avatar-controls { margin-top: 8px; }
 [data-theme="severance"] .avatar-controls .btn { margin-top: 0; }
+
+/* rulări recente și jurnal de activitate (tab-ul Agenți) */
+[data-theme="severance"] .runs { margin-top: 8px; display: flex; flex-direction: column; gap: 2px; }
+[data-theme="severance"] .run { font-size: 11px; color: var(--sev-text-mid); }
+[data-theme="severance"] .feed { margin-top: 26px; }
+[data-theme="severance"] .feed ul { list-style: none; margin: 0; padding: 0; border: 1px solid var(--sev-line); background: var(--sev-panel); }
+[data-theme="severance"] .feed li { display: flex; gap: 14px; padding: 8px 14px; border-bottom: 1px solid var(--sev-line-soft); font-size: 12px; flex-wrap: wrap; }
+[data-theme="severance"] .feed li:last-child { border-bottom: 0; }
+[data-theme="severance"] .feed-time { color: var(--sev-faint); white-space: nowrap; }
+[data-theme="severance"] .feed-who { color: var(--sev-cyan); letter-spacing: .08em; white-space: nowrap; }
+[data-theme="severance"] .feed li[data-agent="durian"] .feed-who { color: var(--sev-gold-hi); }
+[data-theme="severance"] .feed li[data-agent="tzanca"] .feed-who { color: var(--sev-indigo-hi); }
+[data-theme="severance"] .feed-what { color: var(--sev-text-mid); min-width: 0; overflow-wrap: anywhere; }
+[data-theme="severance"] .feed-empty { color: var(--sev-faint); font-size: 12px; }

@@ -1,17 +1,20 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 
-export type Theme = 'basic' | 'severance'
+export type Theme = 'basic' | 'severance' | 'synthwave'
 const KEY = 'jd-theme'
 
 const readTheme = (): Theme => {
-  try { return localStorage.getItem(KEY) === 'basic' ? 'basic' : 'severance' } catch { return 'severance' }
+  try {
+    const t = localStorage.getItem(KEY)
+    return t === 'basic' || t === 'synthwave' ? t : 'severance'
+  } catch { return 'severance' }
 }
 
-/** Severance e tema implicită (cât timp nu alegi Basic). Basic urmărește tema sistemului (ca înainte); Severance e mereu întunecată. Clasa `dark` activează variantele `dark:`. */
+/** Severance e tema implicită (cât timp nu alegi alta). Basic urmărește tema sistemului (ca înainte); Severance și Synthwave sunt mereu întunecate. Clasa `dark` activează variantele `dark:`. */
 function apply(theme: Theme) {
   const root = document.documentElement
   root.dataset.theme = theme
-  const dark = theme === 'severance' || matchMedia('(prefers-color-scheme: dark)').matches
+  const dark = theme !== 'basic' || matchMedia('(prefers-color-scheme: dark)').matches
   root.classList.toggle('dark', dark)
 }
 
@@ -39,7 +42,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export const useTheme = () => useContext(Ctx)
 
-const THEMES: [Theme, string][] = [['basic', 'Basic'], ['severance', 'Severance']]
+const THEMES: [Theme, string][] = [['basic', 'Basic'], ['severance', 'Severance'], ['synthwave', 'Synthwave']]
 
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme()

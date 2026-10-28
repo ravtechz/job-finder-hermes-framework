@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./severance.css";
+@import "./synthwave.css";
 
 /* `dark:` urmărește clasa .dark de pe <html> (pusă de src/theme.tsx): Basic ca sistemul, Severance mereu */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -18,8 +19,9 @@ body { @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text
   .app { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "side" "main"; }
   .app-side { align-items: flex-start; }
 }
-[data-theme="severance"] .basic-only { display: none !important; }
-[data-theme="basic"] .sev-only { display: none !important; }
+[data-theme="severance"] .basic-only, [data-theme="synthwave"] .basic-only { display: none !important; }
+[data-theme="basic"] .sev-only, [data-theme="synthwave"] .sev-only { display: none !important; }
+html:not([data-theme="synthwave"]) .sw-only { display: none !important; }
 
 /* comutatorul de temă */
 .theme-switch { display: flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; }

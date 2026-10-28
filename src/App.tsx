@@ -3,6 +3,7 @@ import { fetchJobs, fetchStats, setStatus } from './api'
 import AgentsOffice from './AgentsOffice'
 import AgentsPage from './AgentsPage'
 import { AgentAvatar } from './avatars'
+import SynthBackground from './SynthBackground'
 import { ThemeSwitch, useTheme } from './theme'
 import CvPage from './CvPage'
 import JobCard from './JobCard'
@@ -13,9 +14,9 @@ const today = () => new Intl.DateTimeFormat('en-CA').format(new Date()) // YYYY-
 
 const field = 'field rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900'
 
-function Stat({ label, value, tone }: { label: string; value: string | number; tone: string }) {
+function Stat({ label, value, tone, kind }: { label: string; value: string | number; tone: string; kind: string }) {
   return (
-    <div className="stat rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+    <div className="stat rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900" data-kind={kind}>
       <div className={`stat-v text-2xl font-bold tabular-nums ${tone}`}>{value}</div>
       <div className="stat-l text-xs text-slate-500 dark:text-slate-400">{label}</div>
     </div>
@@ -59,12 +60,24 @@ export default function App() {
   }
 
   return (
+    <>
+    {theme === 'synthwave' && <SynthBackground />}
     <div className="app">
+      <div className="sw-only app-brand">
+        <span className="brand-logo" aria-hidden="true">J</span>
+        <span className="brand-word"><span className="c1">$</span>JOBS_Feed<span className="c2">&gt;</span></span>
+        <span className="brand-date">{new Date().toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+      </div>
       <header className="app-top">
         <div className="sev-only crumb">LUMON / MACRODATA REFINEMENT</div>
+        <div className="sw-only kicker">~/durian --vadim --tzanca</div>
         <div>
           <h1 className="text-xl font-bold sm:text-2xl">
-            {page === 'cv' ? 'CV' : page === 'profile' ? 'Profil' : page === 'agents' ? 'Agenți' : filters.mode === 'week' ? 'Ultimele 7 zile' : isToday ? 'Azi' : filters.date}
+            {(() => {
+              const t = page === 'cv' ? 'CV' : page === 'profile' ? 'Profil' : page === 'agents' ? 'Agenți' : filters.mode === 'week' ? 'Ultimele 7 zile' : isToday ? 'Azi' : filters.date
+              const i = t.indexOf(' ')
+              return i < 0 ? <span className="t-first">{t}</span> : <><span className="t-first">{t.slice(0, i)}</span>{t.slice(i)}</>
+            })()}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Joburi găsite de Durian, evaluate de Vadim, pregătite de Tzanca.</p>
           <p className="basic-only mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
@@ -92,14 +105,14 @@ export default function App() {
       </aside>
 
       <main className="app-main">
-      {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : page === 'agents' ? (theme === 'severance' ? <AgentsOffice /> : <AgentsPage />) : <>
+      {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : page === 'agents' ? (theme === 'basic' ? <AgentsPage /> : <AgentsOffice />) : <>
 
       <div className="stats mb-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
-        <Stat label={filters.mode === 'week' ? 'Noi (7 zile)' : isToday ? 'Noi azi' : 'Noi în zi'} value={stats?.new_jobs ?? '–'} tone="" />
-        <Stat label="APPLY" value={stats?.apply ?? '–'} tone="text-emerald-600 dark:text-emerald-400" />
-        <Stat label="MAYBE" value={stats?.maybe ?? '–'} tone="text-amber-600 dark:text-amber-400" />
-        <Stat label="SKIP" value={stats?.skip ?? '–'} tone="text-slate-500" />
-        <Stat label="Scor mediu" value={stats?.avg_score ?? '–'} tone="" />
+        <Stat kind="total" label={filters.mode === 'week' ? 'Noi (7 zile)' : isToday ? 'Noi azi' : 'Noi în zi'} value={stats?.new_jobs ?? '–'} tone="" />
+        <Stat kind="apply" label="APPLY" value={stats?.apply ?? '–'} tone="text-emerald-600 dark:text-emerald-400" />
+        <Stat kind="maybe" label="MAYBE" value={stats?.maybe ?? '–'} tone="text-amber-600 dark:text-amber-400" />
+        <Stat kind="skip" label="SKIP" value={stats?.skip ?? '–'} tone="text-slate-500" />
+        <Stat kind="avg" label="Scor mediu" value={stats?.avg_score ?? '–'} tone="" />
       </div>
 
       <div className="filters mb-4 flex flex-wrap items-center gap-2">
@@ -109,7 +122,7 @@ export default function App() {
                 className={`btn rounded-lg border px-3 py-1.5 text-sm ${filters.mode === 'week' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 dark:border-slate-700'}`}>
           Ultimele 7 zile
         </button>
-        {!isToday && <button onClick={() => setFilters((f) => ({ ...f, mode: 'day', date: today() }))} className="text-sm underline">Azi</button>}
+        {!isToday && <button onClick={() => setFilters((f) => ({ ...f, mode: 'day', date: today() }))} className="btn-today text-sm underline">Azi</button>}
         <select className={field} value={filters.verdict} onChange={(e) => set('verdict', e.target.value as Filters['verdict'])}>
           <option value="">Orice verdict</option><option>APPLY</option><option>MAYBE</option><option>SKIP</option>
         </select>
@@ -138,5 +151,6 @@ export default function App() {
       </>}
       </main>
     </div>
+    </>
   )
 }
