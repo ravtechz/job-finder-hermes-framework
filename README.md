@@ -96,6 +96,14 @@ Din tab-ul **Agenți** poți încărca o poză pentru Durian, Vadim, Tzanca și 
 - **API (doar din UI, agenții primesc 403):** `GET /api/avatars` (care agenți au poză), `GET|PUT|DELETE /api/avatars/:agent` cu `:agent` = `durian`, `vadim`, `tzanca` sau `milchick`. Din linia de comandă: `curl -X PUT -H 'Content-Type: image/png' --data-binary @poza.png http://127.0.0.1:3333/api/avatars/vadim`.
 - **Securitate:** formatul se verifică după conținutul fișierului, nu după ce declară clientul; SVG e refuzat (poate conține scripturi); pozele se servesc cu `nosniff` și cu o politică CSP care interzice orice conținut activ.
 
+## Teme: Basic și Severance
+Aplicația are două teme, comutabile din interfață (butoanele **Basic | Severance**: în antet la Basic, în partea de jos a meniului lateral la Severance). Alegerea se păstrează în browser (`localStorage`) și se aplică înainte de prima afișare, deci pagina nu „clipește”.
+- **Basic:** aspectul clasic; urmărește tema luminoasă/întunecată a sistemului.
+- **Severance:** inspirată de interfața Lumon din serialul Severance: mereu întunecată, font IBM Plex Mono, colțuri drepte, meniu lateral cu tab-uri, carduri cu panouri colorate pe agent și detalii care se deschid animat. Tab-ul **Agenți** devine un birou văzut de sus: Milchick deasupra, iar Durian, Vadim și Tzanca la birou când lucrează și pe bancă când nu.
+- **Starea din birou** vine din dashboard (`GET /api/agents/activity`, doar din UI): un agent e „la birou” dacă a scris ceva în ultimele 5 minute (Durian un job, Vadim o evaluare, Tzanca sugestii), iar Tzanca și când ai cerut sugestii din butonul „Marchează APPLY” și nu s-au salvat încă. Serverul nu vede rulările Hermes, deci starea e o aproximare după activitate, nu o stare exactă de rulare. Pozele din tab-ul Agenți se încarcă tot acolo (vezi „Poze pentru agenți”).
+- **Pentru dezvoltatori:** `npm run dev` (Vite) arată în birou și un buton „Simulează activitate”, ca să vezi agenții mutându-se între birou și bancă; în varianta construită (`npm run build`) nu există.
+- **Cum e făcută:** `src/theme.tsx` setează `data-theme` și clasa `dark` pe `<html>`; `src/severance.css` conține tokenii (culori, font), paleta Tailwind refăcută doar sub temă și componentele; Basic nu e atins. Fontul IBM Plex Mono (licență SIL OFL 1.1, în `public/fonts/LICENSE.txt`) e servit local, fără Google Fonts, cu subseturile latin și latin-ext pentru diacriticele românești.
+
 ## Profil, evaluări și reevaluare
 - **Profil** (tab-ul Profil): stack, experiență, senioritate țintă, salariu minim, locații, mod de lucru, limbi, condiții de excludere, preferințe. Un singur profil, salvat în SQLite. Agenții îl citesc cu `GET /api/profile?format=text` (JSON fără `format`); 404 `profile_not_found` dacă nu există.
 - **Evaluările** (Vadim) vin cu `score_breakdown` (5 componente + knockout), validat de server. Detaliile sunt în `AGENTS-API.md`. UI-ul le arată ca bare mici și, la knockout, un badge roșu cu motivul.

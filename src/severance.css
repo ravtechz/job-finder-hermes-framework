@@ -281,3 +281,73 @@
 [data-theme="severance"] input.tag-input:not([type="checkbox"]):not([type="file"]),
 [data-theme="severance"] input.tag-input:not([type="checkbox"]):not([type="file"]):focus { border: 0; background: transparent; }
 [data-theme="severance"] .app-main .flex-wrap:has(> .tag-input), [data-theme="severance"] .app-main div:has(> input.tag-input) { background: var(--sev-panel-deep); border-color: var(--sev-line); }
+
+/* ---------- 8. TAB „AGENȚI”: biroul Lumon ---------- */
+[data-theme="severance"] .btn-sm { padding: 4px 10px; font-size: 10px; letter-spacing: .18em; border-color: var(--sev-cyan-line); color: var(--sev-cyan); }
+[data-theme="severance"] .btn-sm:hover { background: rgba(111, 214, 210, .12); border-color: var(--sev-cyan-line); color: var(--sev-cyan); }
+[data-theme="severance"] .office-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+[data-theme="severance"] .office-title { font-size: 12px; font-weight: 600; letter-spacing: .25em; color: var(--sev-text-hi); }
+[data-theme="severance"] .office-sim { margin-left: auto; }
+[data-theme="severance"] .office-scroll { overflow-x: auto; }
+[data-theme="severance"] .office {
+  position: relative; height: 488px; min-width: 640px; border: 1px solid #1b3442; background-color: #0b1a23; overflow: hidden;
+  background-image: linear-gradient(var(--sev-grid) 1px, transparent 1px), linear-gradient(90deg, var(--sev-grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+[data-theme="severance"] .otag { position: absolute; font-size: 9px; letter-spacing: .3em; color: var(--sev-faintest); }
+[data-theme="severance"] .office .divider { position: absolute; left: 0; right: 0; top: 318px; border-top: 1px dashed var(--sev-line); }
+[data-theme="severance"] .bench { position: absolute; left: 6%; right: 6%; top: 432px; height: 10px; border: 1px solid #3d5360; background: #10222d; }
+[data-theme="severance"] .olink { position: absolute; border: 0 dashed var(--sev-gold-line); opacity: .7; }
+[data-theme="severance"] .mgr {
+  position: absolute; left: calc(50% - 150px); top: 26px; width: 300px; height: 70px; border: 1px solid var(--sev-gold);
+  background: rgba(10, 22, 30, .85); box-shadow: 0 0 18px rgba(217, 178, 90, .12);
+}
+[data-theme="severance"] .mgr .cap { position: absolute; left: 0; right: 0; top: 5px; text-align: center; font-size: 8px; letter-spacing: .3em; color: var(--sev-gold-line); }
+[data-theme="severance"] .mgr .avatar {
+  position: absolute; left: 12px; top: 19px; width: 44px; height: 44px; border: 2px solid var(--sev-gold); box-shadow: 0 0 12px rgba(217, 178, 90, .4); background: var(--sev-panel);
+}
+[data-theme="severance"] .mgr .txt { position: absolute; left: 70px; top: 20px; right: 10px; }
+[data-theme="severance"] .mgr-nm { font-size: 14px; letter-spacing: .16em; color: var(--sev-gold-hi); font-weight: 500; }
+[data-theme="severance"] .mgr-role { font-size: 9px; letter-spacing: .2em; color: var(--sev-muted); }
+[data-theme="severance"] .mgr-state { margin-top: 2px; font-size: 10px; color: var(--sev-gold-hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+[data-theme="severance"] .desk { position: absolute; top: 124px; width: 210px; height: 178px; border: 1px solid var(--sev-gold-line); background: rgba(10, 22, 30, .72); transition: border-color .6s; }
+[data-theme="severance"] .desk.idle { border-color: #3d4a4a; }
+[data-theme="severance"] .desk .cap { text-align: center; margin-top: 7px; font-size: 8px; letter-spacing: .3em; color: var(--sev-faint); }
+[data-theme="severance"] .screen {
+  position: absolute; left: 45px; top: 26px; width: 120px; height: 66px; border: 2px solid var(--sev-cyan-line); background: #0b2a33;
+  box-shadow: 0 0 18px rgba(111, 214, 210, .35); overflow: hidden; transition: all .6s;
+}
+[data-theme="severance"] .idle .screen { border-color: var(--sev-line); background: #08121a; box-shadow: none; }
+[data-theme="severance"] .screen pre { margin: 0; padding: 5px 6px; font: 8px/1.35 var(--sev-font); letter-spacing: .18em; color: var(--sev-cyan); opacity: .85; border: 0; background: none; }
+[data-theme="severance"] .stand { position: absolute; left: 90px; top: 94px; width: 30px; height: 6px; background: #2a4553; }
+[data-theme="severance"] .kbd { position: absolute; left: 60px; top: 104px; width: 90px; height: 7px; border: 1px solid #2a4553; background: #10222d; }
+[data-theme="severance"] .chair { position: absolute; left: 84px; top: 118px; width: 42px; height: 42px; border: 1px dashed #2a4553; border-radius: 50%; display: none; }
+[data-theme="severance"] .idle .chair { display: block; }
+/* avatarul se mută între birou (top: 238px) și bancă (top: 380px) cu tranziție pe `top` */
+[data-theme="severance"] .agent { position: absolute; width: 56px; top: 238px; z-index: 2; transition: top 1.2s cubic-bezier(.6, 0, .25, 1); }
+[data-theme="severance"] .agent.idle { top: 380px; }
+[data-theme="severance"] .agent .avatar {
+  display: flex; width: 52px; height: 52px; border: 2px solid var(--sev-cyan); box-shadow: 0 0 14px rgba(111, 214, 210, .55);
+  background: var(--sev-panel); transition: border-color .6s, box-shadow .6s;
+}
+[data-theme="severance"] .agent.idle .avatar { border-color: var(--sev-gold-line); box-shadow: none; }
+[data-theme="severance"] .agent .nm {
+  position: absolute; left: 50%; top: 58px; transform: translateX(-50%); white-space: nowrap; padding: 1px 8px; font-size: 9px; letter-spacing: .2em;
+  border: 1px solid var(--sev-cyan); background: var(--sev-bg); color: var(--sev-cyan);
+}
+[data-theme="severance"] .agent.idle .nm { border-color: var(--sev-gold-line); color: var(--sev-gold-line); }
+@media (prefers-reduced-motion: reduce) { [data-theme="severance"] .agent, [data-theme="severance"] .screen, [data-theme="severance"] .desk { transition: none; } }
+
+[data-theme="severance"] .agent-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 14px; }
+[data-theme="severance"] .acard { border: 1px solid var(--sev-gold-line); padding: 12px 14px; background: rgba(10, 22, 30, .5); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+[data-theme="severance"] .acard.mgr-card { border-color: var(--sev-gold); background: rgba(217, 178, 90, .05); }
+[data-theme="severance"] .acard-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+[data-theme="severance"] .acard .nm { font-size: 14px; letter-spacing: .14em; color: var(--sev-cyan); font-weight: 500; }
+[data-theme="severance"] .acard.mgr-card .nm { color: var(--sev-gold-hi); }
+[data-theme="severance"] .acard .state { margin-top: 8px; font-size: 11px; color: var(--sev-gold); overflow-wrap: anywhere; }
+[data-theme="severance"] .acard .state.on { color: var(--sev-cyan); }
+[data-theme="severance"] .acard.mgr-card .state { color: var(--sev-gold-hi); }
+[data-theme="severance"] .acard .btn { align-self: flex-start; margin-top: 8px; }
+[data-theme="severance"] .avatar-controls { margin-top: 8px; }
+[data-theme="severance"] .avatar-controls .btn { margin-top: 0; }

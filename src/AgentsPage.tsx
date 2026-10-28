@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { deleteAvatar, uploadAvatar } from './api'
 import { AgentAvatar, useAvatars, type AgentKey } from './avatars'
 
-const AGENTS: { key: AgentKey; name: string; role: string; initials: string; bg: string }[] = [
+export const AGENTS: { key: AgentKey; name: string; role: string; initials: string; bg: string }[] = [
   { key: 'milchick', name: 'Domnu Milchick', role: 'Supervizor al departamentului', initials: 'DM', bg: 'bg-slate-700' },
   { key: 'durian', name: 'Durian Popa', role: 'Găsește joburi', initials: 'DP', bg: 'bg-fuchsia-600' },
   { key: 'vadim', name: 'Vadim Sudor', role: 'Evaluează joburile', initials: 'VS', bg: 'bg-indigo-600' },
@@ -26,12 +26,14 @@ async function toSquare(file: File, size = 256): Promise<Blob> {
   return out
 }
 
-function AgentCard({ a }: { a: (typeof AGENTS)[number] }) {
+/** Butoanele de încărcare/ștergere a pozei unui agent, folosite în ambele teme. */
+export function AvatarControls({ agent, name, small = false }: { agent: AgentKey; name: string; small?: boolean }) {
   const { versions, reload } = useAvatars()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const input = useRef<HTMLInputElement>(null)
-  const has = !!versions[a.key]
+  const has = !!versions[agent]
+  const b = small ? 'btn-sm' : ''
 
   async function run(fn: () => Promise<void>, okText: string) {
     setBusy(true); setMsg(null)
@@ -44,23 +46,31 @@ function AgentCard({ a }: { a: (typeof AGENTS)[number] }) {
     if (input.current) input.current.value = ''
     if (!f) return
     if (!f.type.startsWith('image/') || f.type === 'image/svg+xml') { setMsg({ ok: false, text: 'Alege o imagine PNG, JPEG, WebP sau GIF.' }); return }
-    run(async () => uploadAvatar(a.key, await toSquare(f)), 'Poza a fost salvată.')
+    run(async () => uploadAvatar(agent, await toSquare(f)), 'Poza a fost salvată.')
   }
 
+  return (
+    <div className="avatar-controls">
+      <div className="flex flex-wrap gap-2">
+        <button className={`${ghost} ${b}`} disabled={busy} onClick={() => input.current?.click()}>{has ? 'Schimbă poza' : 'Încarcă poză'}</button>
+        {has && <button className={`${ghost} ${b} text-red-600 dark:text-red-400`} disabled={busy}
+                        onClick={() => confirm(`Ștergi poza lui ${name}?`) && run(() => deleteAvatar(agent), 'Poza a fost ștearsă.')}>Șterge</button>}
+        <input ref={input} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+      </div>
+      {busy && <p className="mt-2 text-sm text-slate-500">Se procesează…</p>}
+      {msg && <p className={`mt-2 text-sm ${msg.ok ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>{msg.text}</p>}
+    </div>
+  )
+}
+
+function AgentCard({ a }: { a: (typeof AGENTS)[number] }) {
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <AgentAvatar agent={a.key} name={a.name} initials={a.initials} bg={a.bg} size="h-20 w-20 text-xl" />
       <div className="min-w-0 flex-1">
         <div className="font-semibold">{a.name}</div>
         <div className="text-sm text-slate-500 dark:text-slate-400">{a.role}</div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <button className={ghost} disabled={busy} onClick={() => input.current?.click()}>{has ? 'Schimbă poza' : 'Încarcă poză'}</button>
-          {has && <button className={`${ghost} text-red-600 dark:text-red-400`} disabled={busy}
-                          onClick={() => confirm(`Ștergi poza lui ${a.name}?`) && run(() => deleteAvatar(a.key), 'Poza a fost ștearsă.')}>Șterge</button>}
-          <input ref={input} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
-        </div>
-        {busy && <p className="mt-2 text-sm text-slate-500">Se procesează…</p>}
-        {msg && <p className={`mt-2 text-sm ${msg.ok ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>{msg.text}</p>}
+        <div className="mt-2"><AvatarControls agent={a.key} name={a.name} /></div>
       </div>
     </div>
   )

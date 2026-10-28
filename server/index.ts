@@ -390,6 +390,40 @@ api.get('/stats', wrap((req, res) => {
   })
 }))
 
+// ---------- activitatea agenților (doar din UI; pentru biroul din tab-ul Agenți) ----------
+// Serverul nu vede rulările Hermes, doar ce scriu agenții în dashboard. Un agent e „la birou” dacă a scris ceva în ultimele
+// WORKING_WINDOW_S secunde; Tzanca e și la birou când există o cerere de sugestii (butonul „Marchează APPLY”) încă nerezolvată.
+// Pentru o stare exactă de rulare ar trebui integrat Hermes (jurnalul de sesiuni), ceea ce nu facem aici.
+const WORKING_WINDOW_S = 300
+
+api.get('/agents/activity', wrap((_req, res) => {
+  const last = (sql: string) => db.prepare(sql).get() as Row | undefined
+  const shape = (r: Row | undefined) => ({ last_at: r?.at ?? null, last_title: r?.title ?? null, last_company: r?.company ?? null })
+  const fresh = (at: string | null | undefined) => !!at && (Date.now() - Date.parse(at)) / 1000 <= WORKING_WINDOW_S
+
+  const durian = shape(last('SELECT title, company, found_at AS at FROM jobs ORDER BY found_at DESC LIMIT 1'))
+  const vadim = shape(last('SELECT j.title, j.company, e.evaluated_at AS at FROM evaluations e JOIN jobs j ON j.job_id = e.job_id ORDER BY e.evaluated_at DESC LIMIT 1'))
+  const tzanca = shape(last('SELECT j.title, j.company, c.created_at AS at FROM cv_suggestions c JOIN jobs j ON j.job_id = c.job_id ORDER BY c.created_at DESC LIMIT 1'))
+  const pending = db.prepare(`
+    SELECT j.title, j.company, e.cv_requested_at AS at FROM evaluations e JOIN jobs j ON j.job_id = e.job_id
+    LEFT JOIN cv_suggestions c ON c.job_id = e.job_id
+    WHERE e.verdict = 'APPLY' AND e.cv_requested_at IS NOT NULL AND c.job_id IS NULL ORDER BY e.cv_requested_at DESC`).all() as Row[]
+
+  res.json({
+    now: now(),
+    working_window_seconds: WORKING_WINDOW_S,
+    agents: {
+      durian: { ...durian, working: fresh(durian.last_at), pending_requests: 0 },
+      vadim: { ...vadim, working: fresh(vadim.last_at), pending_requests: 0 },
+      tzanca: {
+        ...(pending.length ? shape(pending[0]) : tzanca),
+        working: pending.length > 0 || fresh(tzanca.last_at),
+        pending_requests: pending.length,
+      },
+    },
+  })
+}))
+
 // ---------- poze pentru agenți (doar din UI; agenții nu au acces) ----------
 const AVATAR_AGENTS = ['durian', 'vadim', 'tzanca', 'milchick'] as const
 const AVATAR_MAX = 2 * 1024 * 1024

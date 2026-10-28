@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchJobs, fetchStats, setStatus } from './api'
+import AgentsOffice from './AgentsOffice'
 import AgentsPage from './AgentsPage'
 import { AgentAvatar } from './avatars'
-import { ThemeSwitch } from './theme'
+import { ThemeSwitch, useTheme } from './theme'
 import CvPage from './CvPage'
 import JobCard from './JobCard'
 import ProfilePage from './ProfilePage'
@@ -28,6 +29,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState<'jobs' | 'cv' | 'profile' | 'agents'>('jobs')
+  const { theme } = useTheme()
 
   const load = useCallback(async () => {
     try {
@@ -90,7 +92,7 @@ export default function App() {
       </aside>
 
       <main className="app-main">
-      {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : page === 'agents' ? <AgentsPage /> : <>
+      {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : page === 'agents' ? (theme === 'severance' ? <AgentsOffice /> : <AgentsPage />) : <>
 
       <div className="stats mb-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
         <Stat label={filters.mode === 'week' ? 'Noi (7 zile)' : isToday ? 'Noi azi' : 'Noi în zi'} value={stats?.new_jobs ?? '–'} tone="" />
