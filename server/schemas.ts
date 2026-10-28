@@ -102,6 +102,10 @@ export const cvSuggestionSchema = z.object({
   tzanca_comment: optStr,
 })
 
+export const verdictChangeSchema = z.object({
+  verdict: z.preprocess(upper, z.enum(VERDICTS, { error: `verdict trebuie să fie unul din: ${VERDICTS.join(', ')}` })),
+})
+
 export const statusSchema = z.object({
   status: z.preprocess(lower, z.enum(STATUSES, { error: `status trebuie să fie unul din: ${STATUSES.join(', ')}` })),
 })

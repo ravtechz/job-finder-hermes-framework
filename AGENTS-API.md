@@ -145,6 +145,12 @@ Serverul completează singur versiunea de CV și de profil folosite; nu le trimi
    # => {"count":3,"total_pending":3,"jobs":[{"job_id":"...","description":"...","evaluation":{...}, ...}]}
    ```
    Joburile marcate Aplicat sau Ignorat nu apar. Fiecare job vine cu `description` și cu evaluarea lui Vadim (`match`, `missing`, `red_flags`). Dacă `count` e 0, ai terminat.
+
+   **Cerere din dashboard.** Utilizatorul poate schimba din UI verdictul unui job (de ex. MAYBE → APPLY, butonul „Marchează APPLY”); jobul devine APPLY și e pornită o rulare pentru el. Când ți se dă un `job_id` pornit așa, caută-l cu `?requested=1`, care listează doar joburile cerute explicit de utilizator (inclusiv cele marcate Aplicat/Ignorat, pentru că cererea e explicită):
+   ```bash
+   curl -s -H "X-Agent-Key: $AGENT_KEY" "http://127.0.0.1:3333/api/jobs/pending-cv?requested=1&limit=20"
+   ```
+   În `evaluation`, `verdict_manual: true` și `original_verdict` arată că verdictul a fost schimbat de utilizator, nu de Vadim; tratează jobul ca APPLY.
 3. Pentru fiecare job, propune modificări concrete pe textul CV-ului, în funcție de descriere și de evaluare, apoi trimite sugestiile.
 4. Dacă un POST dă 409 `not_apply`, jobul nu (mai) e APPLY: treci peste el, nu insista. La 409 `cv_not_found` oprește tot și raportează.
 

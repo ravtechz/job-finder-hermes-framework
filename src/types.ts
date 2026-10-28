@@ -18,6 +18,9 @@ export interface Evaluation {
   score_breakdown: ScoreBreakdown | null
   stale_cv: boolean
   stale_profile: boolean
+  verdict_manual: boolean
+  original_verdict: Verdict | null
+  cv_requested_at: string | null
   match: string[]
   missing: string[]
   red_flags: string[]

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { fetchJob, reevaluateJob } from './api'
+import { fetchJob, reevaluateJob, setVerdict } from './api'
 import type { Job, Remote, ScoreBreakdown, Status, Verdict } from './types'
 
 const VERDICT_STYLE: Record<Verdict, string> = {
@@ -107,6 +107,13 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
   }
   const ev = job.evaluation
   const cv = job.cv_suggestion
+  const [busy, setBusy] = useState(false)
+
+  async function changeVerdict(v: Verdict) {
+    setBusy(true)
+    try { await setVerdict(job.job_id, v) } finally { setBusy(false); onReload() }
+  }
+  const waitingTzanca = !!ev && ev.verdict === 'APPLY' && !!ev.cv_requested_at && !cv
   const dim = job.status === 'ignored' ? 'opacity-60' : ''
 
   const btn = (s: Status, label: string, active: string) => (
@@ -127,6 +134,8 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
           <div className="flex flex-wrap items-center gap-2">
             {ev ? <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${VERDICT_STYLE[ev.verdict]}`}>{ev.verdict}</span>
                 : <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">NEEVALUAT</span>}
+            {ev?.verdict_manual && <Chip>manual (Vadim: {ev.original_verdict})</Chip>}
+            {waitingTzanca && <Chip>sugestii CV cerute (Tzanca)…</Chip>}
             {ev?.score_breakdown?.knockout && <span className="rounded-md bg-red-600 px-2 py-0.5 text-xs font-bold text-white">KNOCKOUT</span>}
             {job.status !== 'new' && <Chip>{STATUS_LABEL[job.status]}</Chip>}
             {ev?.stale_cv && <Stale>evaluat pe CV vechi</Stale>}
@@ -160,6 +169,19 @@ export default function JobCard({ job, onStatus, onReload }: { job: Job; onStatu
         {btn('applied', 'Aplicat', 'border-emerald-600 bg-emerald-600 text-white')}
         {btn('seen', 'Văzut', 'border-sky-600 bg-sky-600 text-white')}
         {btn('ignored', 'Ignoră', 'border-slate-600 bg-slate-600 text-white')}
+        {ev && ev.verdict !== 'APPLY' && (
+          <button onClick={() => changeVerdict('APPLY')} disabled={busy}
+            title="Schimbă verdictul în APPLY și cere lui Tzanca sugestii de CV"
+            className="rounded-lg border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 dark:text-emerald-400 dark:hover:bg-emerald-950">
+            ↑ Marchează APPLY
+          </button>
+        )}
+        {ev?.verdict_manual && ev.original_verdict && (
+          <button onClick={() => changeVerdict(ev.original_verdict!)} disabled={busy}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800">
+            ↩ Înapoi la {ev.original_verdict}
+          </button>
+        )}
         <button onClick={toggle} className="ml-auto text-sm text-slate-500 underline-offset-2 hover:underline" aria-expanded={open}>
           {open ? 'Ascunde detalii ▲' : 'Detalii ▼'}
         </button>

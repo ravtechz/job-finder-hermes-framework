@@ -69,6 +69,8 @@ export function openDb(file = process.env.DB_PATH || './data/jobs.db') {
   addColumn('evaluations', 'score_breakdown', 'TEXT') // JSON; null doar la evaluări vechi
   addColumn('evaluations', 'cv_uploaded_at', 'TEXT')
   addColumn('evaluations', 'profile_updated_at', 'TEXT')
+  addColumn('evaluations', 'original_verdict', 'TEXT') // verdictul lui Vadim, doar dacă utilizatorul l-a schimbat manual
+  addColumn('evaluations', 'cv_requested_at', 'TEXT') // când a cerut utilizatorul sugestii CV de la Tzanca (din UI)
   addColumn('cv_suggestions', 'cv_uploaded_at', 'TEXT')
   return db
 }

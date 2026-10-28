@@ -5,12 +5,12 @@ import crypto from 'node:crypto'
 import path from 'node:path'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { ZodError, type ZodType } from 'zod'
+import { z, ZodError, type ZodType } from 'zod'
 import { openDb } from './db.js'
 import { addDays, localDate, normalizeJobId } from './util.js'
 import { formatProfile } from './profile.js'
 import { CvError, extractCvText } from './cv.js'
-import { cvSuggestionSchema, evaluationSchema, jobSchema, listQuerySchema, statusSchema, cvTextSchema, profileSchema, pendingQuerySchema, reevaluateSchema, type Profile } from './schemas.js'
+import { cvSuggestionSchema, evaluationSchema, jobSchema, listQuerySchema, statusSchema, cvTextSchema, profileSchema, pendingQuerySchema, reevaluateSchema, verdictChangeSchema, type Profile } from './schemas.js'
 
 const db = openDb()
 const app = express()
@@ -135,7 +135,7 @@ type Versions = ReturnType<typeof currentVersions>
 
 function shapeJob(r: Row, cur: Versions, withDescription = false) {
   const {
-    ev_score, ev_verdict, ev_match, ev_missing, ev_red_flags, ev_comment, ev_at, ev_breakdown, ev_cv_at, ev_profile_at,
+    ev_score, ev_verdict, ev_match, ev_missing, ev_red_flags, ev_comment, ev_at, ev_breakdown, ev_cv_at, ev_profile_at, ev_orig, ev_cv_req,
     cv_changes, cv_keywords, cv_questions, cv_comment, cv_at, cv_cv_at, description, ...job
   } = r
   return {
@@ -148,6 +148,7 @@ function shapeJob(r: Row, cur: Versions, withDescription = false) {
           job_id: job.job_id, score: ev_score, verdict: ev_verdict, score_breakdown: ev_breakdown ? JSON.parse(ev_breakdown) : null,
           match: arr(ev_match), missing: arr(ev_missing), red_flags: arr(ev_red_flags), vadim_comment: ev_comment, evaluated_at: ev_at,
           cv_uploaded_at: ev_cv_at, profile_updated_at: ev_profile_at,
+          verdict_manual: !!ev_orig, original_verdict: ev_orig ?? null, cv_requested_at: ev_cv_req ?? null,
           stale_cv: cur.cv !== null && ev_cv_at !== cur.cv,
           stale_profile: cur.profile !== null && ev_profile_at !== cur.profile,
         }
@@ -165,6 +166,7 @@ const SELECT = `
   SELECT j.*, e.score AS ev_score, e.verdict AS ev_verdict, e.match AS ev_match, e.missing AS ev_missing,
          e.red_flags AS ev_red_flags, e.vadim_comment AS ev_comment, e.evaluated_at AS ev_at,
          e.score_breakdown AS ev_breakdown, e.cv_uploaded_at AS ev_cv_at, e.profile_updated_at AS ev_profile_at,
+         e.original_verdict AS ev_orig, e.cv_requested_at AS ev_cv_req,
          c.cv_changes, c.keywords_added AS cv_keywords, c.questions_for_user AS cv_questions,
          c.tzanca_comment AS cv_comment, c.created_at AS cv_at, c.cv_uploaded_at AS cv_cv_at
   FROM jobs j
@@ -254,7 +256,8 @@ api.post('/evaluations', wrap((req, res) => {
     VALUES (@job_id, @score, @verdict, @score_breakdown, @match, @missing, @red_flags, @vadim_comment, @at, @cv_at, @profile_at)
     ON CONFLICT(job_id) DO UPDATE SET score=excluded.score, verdict=excluded.verdict, score_breakdown=excluded.score_breakdown,
       match=excluded.match, missing=excluded.missing, red_flags=excluded.red_flags, vadim_comment=excluded.vadim_comment,
-      evaluated_at=excluded.evaluated_at, cv_uploaded_at=excluded.cv_uploaded_at, profile_updated_at=excluded.profile_updated_at`)
+      evaluated_at=excluded.evaluated_at, cv_uploaded_at=excluded.cv_uploaded_at, profile_updated_at=excluded.profile_updated_at,
+      original_verdict=NULL, cv_requested_at=NULL`)
     .run({ ...e, score_breakdown: json(e.score_breakdown), match: json(e.match), missing: json(e.missing), red_flags: json(e.red_flags), at: now(), cv_at: cvAt, profile_at: profileAt })
   res.status(existed ? 200 : 201).json({ ok: true, updated: !!existed, job_id: e.job_id })
 }))
@@ -289,10 +292,17 @@ api.get('/jobs/pending-evaluation', wrap((req, res) => {
   res.json({ count: rows.length, total_pending: total, jobs: rows.map((r) => shapeJob(r, cur, true)) })
 }))
 
+// ?requested=1: doar joburile pentru care utilizatorul a cerut sugestii din UI (butonul „Marchează APPLY”). O cerere
+// explicită trece peste excluderea Aplicat/Ignorat.
+const pendingCvQuery = (limit: number) => pendingQuerySchema(limit).extend({ requested: z.enum(['1', 'true']).optional() })
+
 api.get('/jobs/pending-cv', wrap((req, res) => {
-  const { limit } = parse(pendingQuerySchema(10), req.query)
-  const where = `${PENDING_STATUS} AND e.verdict = 'APPLY' AND c.job_id IS NULL`
-  const rows = db.prepare(`${SELECT} WHERE ${where} ORDER BY j.found_at ASC, j.id ASC LIMIT ?`).all(limit) as Row[]
+  const { limit, requested } = parse(pendingCvQuery(10), req.query)
+  const where = requested
+    ? `e.verdict = 'APPLY' AND e.cv_requested_at IS NOT NULL AND c.job_id IS NULL`
+    : `${PENDING_STATUS} AND e.verdict = 'APPLY' AND c.job_id IS NULL`
+  const order = requested ? 'e.cv_requested_at ASC' : 'j.found_at ASC, j.id ASC'
+  const rows = db.prepare(`${SELECT} WHERE ${where} ORDER BY ${order} LIMIT ?`).all(limit) as Row[]
   const total = (db.prepare(`SELECT COUNT(*) AS n FROM jobs j JOIN evaluations e ON e.job_id = j.job_id LEFT JOIN cv_suggestions c ON c.job_id = j.job_id WHERE ${where}`).get() as Row).n
   const cur = currentVersions()
   res.json({ count: rows.length, total_pending: total, jobs: rows.map((r) => shapeJob(r, cur, true)) })
@@ -330,6 +340,25 @@ api.get('/jobs/:job_id', wrap((req, res) => {
   const job = getJob(normalizeJobId(String(req.params.job_id)))
   if (!job) throw new HttpError(404, 'Jobul nu există.', { code: 'job_not_found' })
   res.json(job)
+}))
+
+// Utilizatorul poate schimba verdictul lui Vadim (de ex. MAYBE -> APPLY). Doar din UI: nu e în rutele agenților.
+// Verdictul inițial se păstrează în original_verdict (null = nemodificat). La APPLY se înregistrează cererea către Tzanca,
+// pe care o preia scriptul deploy/tzanca-runner.sh. O evaluare nouă de la Vadim șterge modificarea manuală.
+api.patch('/jobs/:job_id/verdict', wrap((req, res) => {
+  const jobId = normalizeJobId(String(req.params.job_id))
+  const { verdict } = parse(verdictChangeSchema, req.body)
+  requireJob(jobId)
+  const ev = db.prepare('SELECT verdict, original_verdict FROM evaluations WHERE job_id = ?').get(jobId) as Row | undefined
+  if (!ev) throw new HttpError(409, 'Jobul nu are încă evaluare; verdictul se poate schimba doar după ce Vadim îl evaluează.', { code: 'not_evaluated' })
+  const original = ev.original_verdict ?? ev.verdict
+  const manual = verdict !== original
+  const requestCv = verdict === 'APPLY' && ev.verdict !== 'APPLY'
+  db.prepare(`UPDATE evaluations SET verdict = @verdict, original_verdict = @orig,
+      cv_requested_at = CASE WHEN @verdict != 'APPLY' THEN NULL WHEN @req THEN @at ELSE cv_requested_at END
+    WHERE job_id = @id`)
+    .run({ verdict, orig: manual ? original : null, req: requestCv ? 1 : 0, at: now(), id: jobId })
+  res.json({ ok: true, job_id: jobId, verdict, original_verdict: manual ? original : null, cv_requested: verdict === 'APPLY' })
 }))
 
 api.patch('/jobs/:job_id/status', wrap((req, res) => {

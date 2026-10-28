@@ -95,6 +95,7 @@ curl -X POST --data-binary @cv.pdf -H 'Content-Type: application/pdf' "http://12
 - **Profil** (tab-ul Profil): stack, experiență, senioritate țintă, salariu minim, locații, mod de lucru, limbi, condiții de excludere, preferințe. Un singur profil, salvat în SQLite. Agenții îl citesc cu `GET /api/profile?format=text` (JSON fără `format`); 404 `profile_not_found` dacă nu există.
 - **Evaluările** (Vadim) vin cu `score_breakdown` (5 componente + knockout), validat de server. Detaliile sunt în `AGENTS-API.md`. UI-ul le arată ca bare mici și, la knockout, un badge roșu cu motivul.
 - **Versiuni.** La fiecare evaluare sau sugestie CV, serverul reține singur data CV-ului și a profilului folosite. Dacă între timp le schimbi, jobul primește badge-ul „evaluat pe CV/profil vechi”. Salvarea profilului fără nicio modificare nu schimbă data.
+- **Schimbarea verdictului și Tzanca.** Pe cardul unui job evaluat MAYBE sau SKIP apare butonul **↑ Marchează APPLY**. Verdictul devine APPLY (cu eticheta „manual”, iar „↩ Înapoi la MAYBE” îl readuce) și se înregistrează o cerere de sugestii de CV, pe care o preia scriptul de mai jos. Verdictul e vizibil în dashboard și la agenți; evaluarea lui Vadim (scor, argumente) rămâne neschimbată. Dacă Vadim reevaluează jobul, modificarea manuală dispare. Doar din UI: cu `AGENT_KEY` sau `ORCH_KEY` ruta primește 403.
 - **Reevaluare.** Butonul „Reevaluează” de pe un job șterge evaluarea și sugestiile CV ale acelui job. Butonul din tab-ul CV face același lucru pentru joburile active (status Nou sau Văzut; Aplicat și Ignorat rămân neatinse). Joburile reapar în `GET /api/jobs/pending-evaluation`.
 - **Descrierea anunțului** (`description`, max 10000 caractere) se trimite la `POST /api/jobs` și apare doar în detaliul jobului și în endpoint-urile `pending-*`, nu în lista `GET /api/jobs`.
 
@@ -183,6 +184,17 @@ hermes -p vadim -z 'Rulează în terminal: curl -s -o /dev/null -w "%{http_code}
 | `404`/`409` cu `cv_not_found` sau `profile_not_found` | cheia merge, dar nu ai încărcat CV-ul (tab-ul CV) sau nu ai completat profilul (tab-ul Profil) |
 
 **Înainte să pornești agenții:** încarcă CV-ul din tab-ul **CV** și completează tab-ul **Profil**. Vadim și Tzanca se opresc fără ele, intenționat. Dacă CV-ul e un PDF fără text, aplicația face OCR, iar agenții pot descărca și originalul (`GET /api/cv/file`).
+
+## Pornirea automată a lui Tzanca (butonul „Marchează APPLY”)
+Serverul nu poate porni singur un agent Hermes (rulează sandbox-uit, ca alt utilizator, și nu are acces la profilurile Hermes). De aceea cererea se salvează în dashboard, iar un timer rulează pe contul în care rulează Hermes și o preia: la fiecare minut face un singur `GET /api/jobs/pending-cv?requested=1` și, doar dacă există o cerere, pornește `hermes -p tzanca`. Când nu e nicio cerere nu pornește niciun agent și nu consumă tokeni. Fiecare cerere se procesează cel mult o dată: dacă Tzanca eșuează, apeși din nou butonul (sau „Înapoi” și apoi „Marchează APPLY”).
+
+```bash
+cd ~/job-dashboard && ./deploy/install-tzanca-runner.sh      # ca utilizatorul Hermes, fără sudo
+systemctl --user list-timers job-dashboard-tzanca.timer      # starea timerului
+journalctl --user -u job-dashboard-tzanca -f                 # ce a rulat și ce a răspuns Tzanca
+./deploy/install-tzanca-runner.sh --remove                   # dezinstalare
+```
+Cerințe: `AGENT_KEY` în `~/.hermes/profiles/tzanca/.env` (vezi „Conectarea agenților Hermes”), `curl`, `flock`, `python3` și `hermes` în PATH. Variabile opționale (în `Environment=` din unitatea `~/.config/systemd/user/job-dashboard-tzanca.service`): `DASH_URL`, `TZANCA_PROFILE`, `TZANCA_ENV_FILE`, `HERMES_BIN`, `TZANCA_TIMEOUT`. Ca să meargă și fără sesiune deschisă: `sudo loginctl enable-linger $USER`. Întârzierea dintre click și pornirea lui Tzanca e de cel mult un minut. Dacă agenții rulează pe alt calculator, rulează instalarea acolo și setează `DASH_URL` (tunel SSH).
 
 ## Acces pentru agenți (AGENT_KEY)
 Agenții trimit `-H "X-Agent-Key: $AGENT_KEY"` și pot apela DOAR: `GET /api/jobs/seen`, `POST /api/jobs`, `GET /api/jobs/pending-evaluation`, `GET /api/jobs/pending-cv`, `GET /api/profile`, `GET /api/cv`, `GET /api/cv/file`, `POST /api/evaluations`, `POST /api/cv-suggestions`. Cu `ORCH_KEY` (Milchick) sunt permise doar `GET /api/stats`, `GET /api/jobs/pending-evaluation` și `GET /api/jobs/:job_id`. Orice altceva primește `403 agent_forbidden` (inclusiv listarea joburilor, statistici, scrierea CV-ului/profilului, schimbarea statusului, reevaluarea și pagina UI). Cheie greșită sau lipsă pe server: `401 invalid_agent_key`.

@@ -1,4 +1,4 @@
-import type { Filters, Job, Profile, Stats, Status } from './types'
+import type { Filters, Job, Profile, Stats, Status, Verdict } from './types'
 
 function qs(f: Filters) {
   const p = new URLSearchParams()
@@ -59,6 +59,15 @@ export const uploadCvText = (text: string) =>
 export const deleteCv = () => cvRequest({ method: 'DELETE' })
 
 export const fetchJob = (jobId: string) => get<Job>(`/api/jobs/${encodeURIComponent(jobId)}`)
+
+export async function setVerdict(jobId: string, verdict: Verdict) {
+  const r = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/verdict`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ verdict }),
+  })
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+}
 
 export async function reevaluateJob(jobId: string) {
   const r = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/reevaluate`, { method: 'POST' })
