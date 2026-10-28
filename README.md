@@ -232,3 +232,6 @@ Browser (React) ──────►┘        └─► servește și dist/ (b
 
 ## Documentația pentru agenți
 Vezi `AGENTS-API.md`.
+
+## Licență
+[PolyForm Noncommercial 1.0.0](LICENSE): poți folosi, copia și modifica codul liber pentru scopuri necomerciale (uz personal, hobby, cercetare, educație, organizații non-profit), dar **nu îl poți vinde** și nu poți face din el un produs sau serviciu comercial. Pentru uz comercial e nevoie de acordul autorului. Nu e o licență „open source” în sensul OSI, ci „source-available”. Bibliotecile terțe (inclusiv modelele Tesseract din `server/tessdata/`) rămân sub licențele lor.
