@@ -17,12 +17,13 @@ const app = express()
 app.disable('x-powered-by')
 
 // ---------- Autentificare ----------
-// Doi cititori ai API-ului:
-//  - agenții trimit X-Agent-Key și ating DOAR rutele din AGENT_ROUTES (restul: 403);
+// Trei feluri de clienți:
+//  - agenții trimit X-Agent-Key = AGENT_KEY și ating DOAR rutele din AGENT_ROUTES (restul: 403);
+//  - orchestratorul (Milchick) trimite X-Agent-Key = ORCH_KEY și poate doar CITI rutele din ORCH_ROUTES;
 //  - UI-ul (fără X-Agent-Key) are acces complet, protejat de Basic Auth dacă e configurat.
 // Cheia agenților restricționează cu adevărat doar dacă Basic Auth e activ: altfel un client care
 // omite header-ul primește acces de UI.
-const { DASH_USER, DASH_PASS, DASH_PASS_HASH, AGENT_KEY } = process.env
+const { DASH_USER, DASH_PASS, DASH_PASS_HASH, AGENT_KEY, ORCH_KEY } = process.env
 let passHash = DASH_PASS_HASH
 if (passHash && !/^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(passHash)) {
   // oprim pornirea în loc să rămânem fără parolă: de obicei hash-ul a fost mutilat de un shell ($...) sau lipit incomplet
@@ -39,21 +40,34 @@ const same = (a: string, b: string) => crypto.timingSafeEqual(sha(a), sha(b))
 
 const AGENT_ROUTES = new Set([
   'GET /api/jobs/seen', 'POST /api/jobs', 'GET /api/jobs/pending-evaluation', 'GET /api/jobs/pending-cv',
-  'GET /api/profile', 'GET /api/cv', 'POST /api/evaluations', 'POST /api/cv-suggestions',
+  'GET /api/profile', 'GET /api/cv', 'GET /api/cv/file', 'POST /api/evaluations', 'POST /api/cv-suggestions',
 ])
+
+// Orchestratorul doar citește: verificarea progresului și detaliul unui job. Fără scrieri.
+const ORCH_ROUTES = new Set(['GET /api/jobs/pending-evaluation', 'GET /api/stats'])
+const ORCH_JOB_DETAIL = /^\/api\/jobs\/(?!(?:seen|pending-evaluation|pending-cv|reevaluate-active)$)[^/]+$/
 
 app.use((req, res, next) => {
   const key = req.headers['x-agent-key']
   if (key === undefined) return next()
-  if (!AGENT_KEY || typeof key !== 'string' || !same(key, AGENT_KEY)) {
-    res.status(401).json({ error: 'invalid_agent_key', message: 'X-Agent-Key lipsește, e greșit sau serverul nu are AGENT_KEY configurat.' })
+  const isAgent = !!AGENT_KEY && typeof key === 'string' && same(key, AGENT_KEY)
+  const isOrch = !!ORCH_KEY && typeof key === 'string' && same(key, ORCH_KEY)
+  if (!isAgent && !isOrch) {
+    res.status(401).json({ error: 'invalid_agent_key', message: 'X-Agent-Key lipsește, e greșit sau serverul nu are cheia configurată (AGENT_KEY / ORCH_KEY).' })
     return
   }
   // req.path e cel brut (fără decodare): orice variantă codificată sau neobișnuită iese din lista de mai sus
-  if (!AGENT_ROUTES.has(`${req.method} ${req.path.replace(/\/$/, '')}`)) {
+  const path = req.path.replace(/\/$/, '')
+  const route = `${req.method} ${path}`
+  const allowed = isAgent
+    ? AGENT_ROUTES.has(route)
+    : ORCH_ROUTES.has(route) || (req.method === 'GET' && ORCH_JOB_DETAIL.test(path))
+  if (!allowed) {
     res.status(403).json({
       error: 'agent_forbidden',
-      message: `Cu X-Agent-Key sunt permise doar: ${[...AGENT_ROUTES].join(', ')}.`,
+      message: isAgent
+        ? `Cu X-Agent-Key sunt permise doar: ${[...AGENT_ROUTES].join(', ')}.`
+        : `Cu cheia orchestratorului sunt permise doar: ${[...ORCH_ROUTES].join(', ')}, GET /api/jobs/:job_id.`,
     })
     return
   }
@@ -340,6 +354,10 @@ api.get('/stats', wrap((req, res) => {
     new_jobs: r.total, apply: r.apply ?? 0, maybe: r.maybe ?? 0, skip: r.skip ?? 0,
     unevaluated: r.unevaluated ?? 0,
     avg_score: r.avg_score === null ? null : Math.round(r.avg_score * 10) / 10,
+    top_apply: db.prepare(`
+      SELECT j.job_id, j.title, j.company, e.score FROM jobs j JOIN evaluations e ON e.job_id = j.job_id
+      WHERE j.found_date BETWEEN ? AND ? AND e.verdict = 'APPLY' AND ${PENDING_STATUS}
+      ORDER BY e.score DESC, j.found_date DESC LIMIT 3`).all(from, to),
   })
 }))
 

@@ -7,6 +7,8 @@
 set -euo pipefail
 
 [ "$(id -u)" = 0 ] || { echo "Rulează cu sudo."; exit 1; }
+command -v rsync >/dev/null || { echo "Eroare: lipsește rsync (ex. apt install rsync)." >&2; exit 1; }
+command -v systemctl >/dev/null || { echo "Eroare: lipsește systemd." >&2; exit 1; }
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP=/opt/job-dashboard
 U=jobdash
@@ -25,8 +27,12 @@ if ! id "$U" >/dev/null 2>&1; then
 fi
 
 FIRST=0; [ -f "$APP/.env" ] || FIRST=1
-if [ "$FIRST" = 1 ] && ss -ltn | grep -q ':3333 ' && ! systemctl is-active --quiet job-dashboard; then
-  die "portul 3333 e ocupat. Oprește serviciul vechi: systemctl --user disable --now job-dashboard"
+if [ "$FIRST" = 1 ]; then
+  # portul din .env-ul pregătit în sursă (sau implicit din .env.example)
+  PORT=$(grep -hE '^PORT=' "$SRC/.env" "$SRC/.env.example" 2>/dev/null | head -1 | cut -d= -f2); PORT=${PORT:-3333}
+  if ss -ltn | grep -q ":$PORT " && ! systemctl is-active --quiet job-dashboard; then
+    die "portul $PORT e ocupat. Dacă e o instalare veche: systemctl --user disable --now job-dashboard (sau schimbă PORT în .env)."
+  fi
 fi
 
 echo "==> Cod în $APP (proprietar root, fără drept de scriere)"
@@ -55,6 +61,11 @@ if ! grep -q '^AGENT_KEY=.\+' "$APP/.env"; then
   echo "    generez AGENT_KEY în .env"
   key=$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')
   if grep -q '^AGENT_KEY=' "$APP/.env"; then sed -i "s|^AGENT_KEY=.*|AGENT_KEY=$key|" "$APP/.env"; else printf 'AGENT_KEY=%s\n' "$key" >> "$APP/.env"; fi
+fi
+if ! grep -q '^ORCH_KEY=.\+' "$APP/.env"; then
+  echo "    generez ORCH_KEY în .env"
+  key=$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')
+  if grep -q '^ORCH_KEY=' "$APP/.env"; then sed -i "s|^ORCH_KEY=.*|ORCH_KEY=$key|" "$APP/.env"; else printf 'ORCH_KEY=%s\n' "$key" >> "$APP/.env"; fi
 fi
 
 echo "==> Servicii systemd"

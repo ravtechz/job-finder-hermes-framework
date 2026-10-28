@@ -73,7 +73,7 @@ export default function CvPage() {
                   onClick={() => run(() => uploadCvText(pasted), 'CV salvat din text.').then(() => setPasted(''))}>Salvează textul</button>
         </details>
 
-        {busy && <p className="mt-3 text-sm text-slate-500">Se procesează…</p>}
+        {busy && <p className="mt-3 text-sm text-slate-500">Se procesează… (un PDF fără text trece prin OCR și poate dura ~30 s)</p>}
         {msg && (
           <p className={`mt-3 rounded-lg p-3 text-sm ${msg.ok ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200' : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200'}`}>{msg.text}</p>
         )}

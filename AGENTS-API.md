@@ -16,7 +16,13 @@ Bază: `http://127.0.0.1:3333`. Toate exemplele de mai jos pot fi copiate direct
 curl -s -H "X-Agent-Key: $AGENT_KEY" "http://127.0.0.1:3333/api/cv?format=text"        # textul CV-ului
 curl -s -H "X-Agent-Key: $AGENT_KEY" "http://127.0.0.1:3333/api/profile?format=text"   # profilul (text compact)
 ```
-Variantele JSON (fără `?format=text`) întorc aceleași date structurate. Răspunsuri speciale:
+Variantele JSON (fără `?format=text`) întorc aceleași date structurate.
+
+**Originalul CV-ului.** Textul de mai sus e extras automat (pentru PDF-uri fără text, prin OCR, deci poate avea diacritice lipsă sau cuvinte greșite). Dacă textul pare incomplet sau stricat, ia fișierul original și citește-l tu (PDF/DOCX/imagine, după capacitățile tale):
+```bash
+curl -s -H "X-Agent-Key: $AGENT_KEY" "http://127.0.0.1:3333/api/cv/file" -o /tmp/cv_original   # tipul e în header-ul Content-Type
+```
+Folosește-l doar când textul nu e suficient; fișierul e mare, deci nu-l descărca la fiecare job. Răspunsuri speciale:
 - `404` cu `"code":"cv_not_found"` sau `"code":"profile_not_found"` (și `409` cu aceleași coduri la `POST /api/evaluations`): **oprește-te imediat**. Nu continua rularea, nu evalua și nu trimite nimic. Raportează: „Lipsește CV-ul/profilul în dashboard; utilizatorul trebuie să îl completeze”. Nu ghici conținutul.
 - Citește CV-ul și profilul **o singură dată, la începutul rulării**, nu pentru fiecare job.
 
@@ -156,11 +162,27 @@ curl -s -H "X-Agent-Key: $AGENT_KEY" -X POST http://127.0.0.1:3333/api/cv-sugges
 Câmpuri: `cv_changes`, `keywords_added`, `questions_for_user` sunt array-uri de stringuri (pot fi `[]`); `tzanca_comment` e replica ta. Retrimiterea pentru același `job_id` înlocuiește sugestiile.
 
 ---
+## Domnu Milchick – orchestrator (doar citire)
+
+Milchick nu scrie nimic în dashboard: delegă, verifică și raportează. Folosește o cheie separată, **`ORCH_KEY`**, trimisă tot ca header `X-Agent-Key`:
+```bash
+curl -s -H "X-Agent-Key: $ORCH_KEY" "http://127.0.0.1:3333/api/stats"
+```
+Cu `ORCH_KEY` sunt permise DOAR aceste apeluri (orice altceva: `403 agent_forbidden`; cheie greșită: `401 invalid_agent_key`):
+| Apel | La ce îl folosești |
+|---|---|
+| `GET /api/jobs/pending-evaluation?limit=1` | după Vadim: `total_pending` trebuie să fie 0 (și dovedește că API-ul răspunde) |
+| `GET /api/stats` | rezumatul zilei: joburi noi, APPLY / MAYBE / SKIP, top APPLY |
+| `GET /api/jobs/:job_id` | înainte de Tzanca: jobul există și are verdictul APPLY |
+
+`GET /api/stats` (opțional `?date=YYYY-MM-DD` sau `?days=N`) întoarce `new_jobs`, `apply`, `maybe`, `skip`, `unevaluated`, `avg_score` și `top_apply` (primele 3 joburi APPLY după scor, fără cele marcate Aplicat/Ignorat: `job_id`, `title`, `company`, `score`); `GET /api/jobs/:job_id` întoarce jobul cu `evaluation` (inclusiv `verdict`) și `cv_suggestion`, dacă există. La `404 job_not_found` îi spui utilizatorului că jobul nu există. `cv_not_found` / `profile_not_found` nu apar la Milchick: apar la Vadim și Tzanca, iar Milchick raportează utilizatorului să completeze CV-ul sau profilul.
+
+---
 ## Referință: coduri de răspuns la erori
 | Cod | `code` | Înseamnă | Ce faci |
 |---|---|---|---|
 | 400 | `validation_error` | câmpuri invalide (vezi `details`) | corectezi și retrimiți o dată |
-| 401 | `invalid_agent_key` | `X-Agent-Key` lipsă, greșită sau neconfigurată pe server | **te oprești** și raportezi |
+| 401 | `invalid_agent_key` | `X-Agent-Key` lipsă, greșită sau neconfigurată pe server (`AGENT_KEY` / `ORCH_KEY`) | **te oprești** și raportezi |
 | 403 | `agent_forbidden` | ai apelat o rută care nu e a agenților | nu insista; folosește doar endpoint-urile din document |
 | 404 | `job_not_found` | `job_id` necunoscut | verifici ID-ul; Durian trebuie să fi creat jobul întâi |
 | 404 | `cv_not_found` / `profile_not_found` | lipsește CV-ul/profilul (la `GET`) | **te oprești** și raportezi |
