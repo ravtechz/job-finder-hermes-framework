@@ -117,10 +117,10 @@ Aplicația are trei teme, comutabile din interfață (butoanele **Basic | Severa
 ## Verificare vizuală
 ```bash
 npx playwright install chromium            # o singură dată
-sudo jobdash seed && npm run screenshots   # capturi din instanța pornită (desktop + mobil, light + dark)
+sudo jobdash seed && npm run screenshots   # capturi din instanța pornită: 6 pagini, fiecare temă, desktop + mobil
 sudo jobdash seed:clear
 ```
-Scriptul de capturi nu trimite parolă: rulează-l cât Basic Auth e oprit sau pe o instanță de dezvoltare.
+Capturile se fac pentru Basic (luminos și întunecat), Severance și Synthwave, pe joburi, job expandat, job knockout, CV, Profil și Agenți (`screenshots/`, ignorat de git). Scriptul de capturi nu trimite parolă: rulează-l cât Basic Auth e oprit sau pe o instanță de dezvoltare.
 
 ## Date de test
 ```bash
@@ -244,7 +244,8 @@ Browser (React) ──────►┘        └─► servește și dist/ (b
 | Bază de date | SQLite prin `better-sqlite3` | apeluri sincrone, WAL; schema se creează singură la pornire (`server/db.ts`) |
 | Config | `dotenv` | `.env` → port, host, Basic Auth (hash bcrypt), chei agenți, fus orar, calea DB |
 | Frontend | React 19 + TypeScript | `src/`; fără bibliotecă de componente |
-| Stiluri | Tailwind 4 | prin pluginul `@tailwindcss/vite`; dark mode din `prefers-color-scheme` |
+| Stiluri | Tailwind 4 | prin pluginul `@tailwindcss/vite`; variantele `dark:` urmăresc clasa `dark` de pe `<html>`; trei teme izolate sub `data-theme` (vezi „Teme”) |
+| Fonturi | IBM Plex Mono, Space Grotesk, JetBrains Mono | servite local din `public/fonts/` (SIL OFL), încărcate doar de tema care le folosește |
 | Build | Vite 8 | `npm run build` → `dist/` |
 | Proces | systemd (serviciu de sistem, utilizatorul `jobdash`) | repornire automată, pornire la boot, sandbox (`deploy/deploy.sh`) |
 
@@ -253,7 +254,7 @@ Browser (React) ──────►┘        └─► servește și dist/ (b
 2. **Calea unei scrieri de la agenți.** `curl` → `X-Agent-Key` (doar rutele permise cheii) → `express.json()` → schema zod (normalizează `job_id`, acceptă `verdict` cu litere mici, transformă un string într-un array) → `better-sqlite3`. La `POST /api/jobs` dedup-ul se face verificând `job_id` (cheie UNIQUE) înainte de insert; evaluările și sugestiile CV sunt upsert (`ON CONFLICT(job_id) DO UPDATE`).
 3. **Calea unei citiri din UI.** `GET /api/jobs` face un `LEFT JOIN` între `jobs`, `evaluations` și `cv_suggestions`, apoi parsează coloanele JSON în array-uri. Rezultatul e sortat după scor. `/api/stats` calculează cardurile din aceleași date.
 4. **Data „azi”.** La inserare se salvează `found_date` în fusul `APP_TZ`; filtrele pe zi folosesc această coloană, nu ora UTC din `found_at`.
-5. **Frontend.** `App.tsx` ține filtrele în state și reia cererile la fiecare schimbare și la 60 s. Butoanele de status actualizează UI-ul imediat și apoi trimit `PATCH`, iar la eroare reîncarcă lista. `JobCard.tsx` desenează cele 3 secțiuni, câte una pe agent.
+5. **Frontend.** `App.tsx` ține filtrele în state și reia cererile la fiecare schimbare și la 60 s. Butoanele de status actualizează UI-ul imediat și apoi trimit `PATCH`, iar la eroare reîncarcă lista. `JobCard.tsx` desenează cele 3 secțiuni, câte una pe agent. Aceleași componente servesc toate temele: markup-ul poartă clase-cârlig (`job`, `badge`, `btn`, `box`...), iar fiecare temă le stilizează din fișierul ei CSS; doar tab-ul Agenți diferă (`AgentsPage.tsx` pentru Basic, `AgentsOffice.tsx` pentru Severance și Synthwave).
 6. **Dezvoltare.** `npm run dev:server` pornește API-ul și `npm run dev` pornește Vite. Vite trimite `/api` către `127.0.0.1:3333` (`vite.config.ts`).
 7. **Acces.** Serverul ascultă doar pe `127.0.0.1`. Din laptop se ajunge la el printr-un tunel SSH, nu prin porturi deschise.
 
