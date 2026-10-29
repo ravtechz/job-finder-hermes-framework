@@ -14,17 +14,13 @@ const today = () => new Intl.DateTimeFormat('en-CA').format(new Date()) // YYYY-
 
 const field = 'field rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900'
 
+// nuanțe synthwave estompate (violet → roz → albastru → cyan), opace ca să acopere pagina
+const BLIND_COLORS = ['#3a1a66', '#5a1d73', '#6e2078', '#6a2a86', '#4f2f8c', '#34408f', '#25508f', '#1f6288', '#206f86', '#1f7a88']
+
 function Blinds() {
-  const [bg] = useState(() => {
-    for (const el of [document.body, document.documentElement]) {
-      const c = getComputedStyle(el).backgroundColor
-      if (c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') return c
-    }
-    return '#0b0b12'
-  })
   return (
-    <div className="blinds" aria-hidden style={{ '--blinds-bg': bg } as React.CSSProperties}>
-      {Array.from({ length: 10 }, (_, i) => <i key={i} style={{ '--i': i } as React.CSSProperties} />)}
+    <div className="blinds" aria-hidden>
+      {BLIND_COLORS.map((c, i) => <i key={i} style={{ '--i': i, '--c': c } as React.CSSProperties} />)}
     </div>
   )
 }
@@ -78,6 +74,7 @@ export default function App() {
   return (
     <>
     {theme === 'synthwave' && <SynthBackground />}
+    {blinds && <Blinds key={page} />}
     <div className="app">
       <div className="sw-only app-brand">
         <span className="brand-logo" aria-hidden="true">J</span>
@@ -122,7 +119,6 @@ export default function App() {
 
       <main className="app-main">
       <div key={page} className="page-fade">
-      {blinds && <Blinds />}
       {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : page === 'agents' ? (theme === 'basic' ? <AgentsPage /> : <AgentsOffice />) : <>
 
       <div className="stats mb-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
