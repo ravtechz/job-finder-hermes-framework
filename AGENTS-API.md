@@ -184,6 +184,9 @@ Cu `ORCH_KEY` sunt permise DOAR aceste apeluri (orice altceva: `403 agent_forbid
 `GET /api/stats` (opțional `?date=YYYY-MM-DD` sau `?days=N`) întoarce `new_jobs`, `apply`, `maybe`, `skip`, `unevaluated`, `avg_score` și `top_apply` (primele 3 joburi APPLY după scor, fără cele marcate Aplicat/Ignorat: `job_id`, `title`, `company`, `score`); `GET /api/jobs/:job_id` întoarce jobul cu `evaluation` (inclusiv `verdict`) și `cv_suggestion`, dacă există. La `404 job_not_found` îi spui utilizatorului că jobul nu există. `cv_not_found` / `profile_not_found` nu apar la Milchick: apar la Vadim și Tzanca, iar Milchick raportează utilizatorului să completeze CV-ul sau profilul.
 
 ---
+### Modelul agentului (opțional, îl raportează scriptul de sincronizare)
+`PUT /api/agents/models` cu `X-Agent-Key`, body `{"vadim": {"model": "claude-opus-5-5", "provider": "anthropic"}}` (chei: `durian`, `vadim`, `tzanca`, `milchick`; valoarea `null` șterge). Apare în tabul Agenți. Nu trebuie apelat de agenți: îl rulează `deploy/sync-agent-models.sh`.
+
 ## Referință: coduri de răspuns la erori
 | Cod | `code` | Înseamnă | Ce faci |
 |---|---|---|---|

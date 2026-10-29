@@ -32,6 +32,10 @@ if [ -z "$KEY" ] && [ -r "$ENV_FILE" ]; then
 fi
 if [ -z "$KEY" ]; then echo "AGENT_KEY lipsește (nici în mediu, nici în $ENV_FILE)" >&2; exit 1; fi
 
+# modelele agenților pentru tabul „Agenți” (un singur PUT mic; eșecul nu oprește restul)
+HERE=$(dirname "$(readlink -f "$0")")
+for f in "$HERE/job-dashboard-sync-agent-models" "$HERE/sync-agent-models.sh"; do [ -x "$f" ] && { "$f" >/dev/null 2>&1 || true; break; }; done
+
 resp=$(curl -sS --max-time 20 -w '\n%{http_code}' -H "X-Agent-Key: $KEY" "$DASH_URL/api/jobs/pending-cv?requested=1&limit=20") || { echo "dashboard-ul nu răspunde ($DASH_URL)" >&2; exit 0; }
 code=${resp##*$'\n'}; body=${resp%$'\n'*}
 if [ "$code" != 200 ]; then echo "pending-cv?requested=1 a răspuns HTTP $code: $body" >&2; exit 1; fi

@@ -365,3 +365,4 @@
 [data-theme="severance"] .feed li[data-agent="tzanca"] .feed-who { color: var(--sev-indigo-hi); }
 [data-theme="severance"] .feed-what { color: var(--sev-text-mid); min-width: 0; overflow-wrap: anywhere; }
 [data-theme="severance"] .feed-empty { color: var(--sev-faint); font-size: 12px; }
+[data-theme="severance"] .acard .model { align-self: flex-start; margin-top: 4px; padding: 1px 7px; font: 11px var(--sev-mono, 'IBM Plex Mono', monospace); letter-spacing: .06em; color: var(--sev-gold); border: 1px solid var(--sev-gold-line); overflow-wrap: anywhere; }

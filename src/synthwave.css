@@ -361,3 +361,4 @@
 [data-theme="synthwave"] .feed-who { font: 700 12px var(--sw-mono); color: var(--ag); white-space: nowrap; }
 [data-theme="synthwave"] .feed-what { min-width: 0; overflow-wrap: anywhere; }
 [data-theme="synthwave"] .feed-empty { color: var(--sw-mut); }
+[data-theme="synthwave"] .acard .model { align-self: flex-start; margin-top: 6px; padding: 2px 8px; border-radius: 999px; font: 11px var(--sw-mono); letter-spacing: .04em; color: var(--ag, var(--sw-cyan)); border: 1px solid color-mix(in srgb, var(--ag, var(--sw-cyan)) 45%, transparent); background: color-mix(in srgb, var(--ag, var(--sw-cyan)) 10%, transparent); overflow-wrap: anywhere; }

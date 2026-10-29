@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { deleteAvatar, uploadAvatar } from './api'
+import { useAgentModels, type ModelMap } from './agentActivity'
 import { AgentAvatar, useAvatars, type AgentKey } from './avatars'
 
 export const AGENTS: { key: AgentKey; name: string; role: string; initials: string; bg: string }[] = [
@@ -63,13 +64,14 @@ export function AvatarControls({ agent, name, small = false }: { agent: AgentKey
   )
 }
 
-function AgentCard({ a }: { a: (typeof AGENTS)[number] }) {
+function AgentCard({ a, model }: { a: (typeof AGENTS)[number]; model?: ModelMap[AgentKey] }) {
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <AgentAvatar agent={a.key} name={a.name} initials={a.initials} bg={a.bg} size="h-20 w-20 text-xl" />
       <div className="min-w-0 flex-1">
         <div className="font-semibold">{a.name}</div>
         <div className="text-sm text-slate-500 dark:text-slate-400">{a.role}</div>
+        <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">Model: <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-200">{model ? model.model : 'necunoscut'}</span>{model?.provider && <span> · {model.provider}</span>}</div>
         <div className="mt-2"><AvatarControls agent={a.key} name={a.name} /></div>
       </div>
     </div>
@@ -77,12 +79,13 @@ function AgentCard({ a }: { a: (typeof AGENTS)[number] }) {
 }
 
 export default function AgentsPage() {
+  const models = useAgentModels()
   return (
     <div className="space-y-3">
       <p className="text-sm text-slate-500 dark:text-slate-400">
         Poza fiecărui agent apare în cardurile joburilor, lângă comentariile și sugestiile lui. Domnu Milchick, care nu comentează joburi, apare în antetul dashboard-ului. Imaginea se decupează pătrat din centru. PNG, JPEG, WebP sau GIF (GIF-ul devine imagine statică).
       </p>
-      {AGENTS.map((a) => <AgentCard key={a.key} a={a} />)}
+      {AGENTS.map((a) => <AgentCard key={a.key} a={a} model={models[a.key]} />)}
     </div>
   )
 }

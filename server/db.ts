@@ -58,6 +58,12 @@ export function openDb(file = process.env.DB_PATH || './data/jobs.db') {
       data TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS agent_models (
+      agent TEXT PRIMARY KEY,
+      model TEXT NOT NULL,
+      provider TEXT,
+      updated_at TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS agent_avatars (
       agent TEXT PRIMARY KEY,
       mime TEXT NOT NULL,

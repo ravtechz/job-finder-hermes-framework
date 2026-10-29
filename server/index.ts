@@ -40,7 +40,7 @@ const same = (a: string, b: string) => crypto.timingSafeEqual(sha(a), sha(b))
 
 const AGENT_ROUTES = new Set([
   'GET /api/jobs/seen', 'POST /api/jobs', 'GET /api/jobs/pending-evaluation', 'GET /api/jobs/pending-cv',
-  'GET /api/profile', 'GET /api/cv', 'GET /api/cv/file', 'POST /api/evaluations', 'POST /api/cv-suggestions',
+  'GET /api/profile', 'PUT /api/agents/models', 'GET /api/cv', 'GET /api/cv/file', 'POST /api/evaluations', 'POST /api/cv-suggestions',
 ])
 
 // Orchestratorul doar citește: verificarea progresului și detaliul unui job. Fără scrieri.
@@ -457,6 +457,29 @@ api.get('/agents/activity', wrap((_req, res) => {
     },
     recent: feed,
   })
+}))
+
+// ---------- modelul folosit de fiecare agent (afișat în tabul Agenți) ----------
+// Serverul nu poate citi configurația Hermes (rulează sub alt utilizator), deci modelul e raportat din afară:
+// deploy/sync-agent-models.sh îl citește din ~/.hermes/profiles/*/config.yaml și îl trimite aici cu AGENT_KEY.
+const modelsSchema = z.record(
+  z.enum(['durian', 'vadim', 'tzanca', 'milchick']),
+  z.object({ model: z.string().trim().min(1).max(80), provider: z.string().trim().max(40).nullish() }).nullable(),
+)
+
+api.get('/agents/models', wrap((_req, res) => {
+  const rows = db.prepare('SELECT agent, model, provider, updated_at FROM agent_models').all() as Row[]
+  res.json(Object.fromEntries(rows.map((r) => [r.agent, { model: r.model, provider: r.provider, updated_at: r.updated_at }])))
+}))
+
+api.put('/agents/models', wrap((req, res) => {
+  const body = parse(modelsSchema, req.body)
+  const at = now()
+  const up = db.prepare(`INSERT INTO agent_models (agent, model, provider, updated_at) VALUES (?, ?, ?, ?)
+    ON CONFLICT(agent) DO UPDATE SET model = excluded.model, provider = excluded.provider, updated_at = excluded.updated_at`)
+  const del = db.prepare('DELETE FROM agent_models WHERE agent = ?')
+  db.transaction(() => { for (const [a, m] of Object.entries(body)) m ? up.run(a, m.model, m.provider ?? null, at) : del.run(a) })()
+  res.json({ ok: true })
 }))
 
 // ---------- poze pentru agenți (doar din UI; agenții nu au acces) ----------

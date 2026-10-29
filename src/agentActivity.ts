@@ -35,3 +35,20 @@ export function useAgentActivity(): { activity: ActivityMap | null; recent: Feed
   }, [])
   return state
 }
+
+export type ModelMap = Partial<Record<AgentKey, { model: string; provider: string | null }>>
+
+/** Modelul fiecărui agent, raportat de deploy/sync-agent-models.sh. */
+export function useAgentModels(): ModelMap {
+  const [models, setModels] = useState<ModelMap>({})
+  useEffect(() => {
+    let live = true
+    const load = () => fetch('/api/agents/models').then((r) => (r.ok ? r.json() : {})).then((d) => live && setModels(d)).catch(() => {})
+    load()
+    const t = setInterval(load, 60_000)
+    return () => { live = false; clearInterval(t) }
+  }, [])
+  return models
+}
+
+export const modelLabel = (m?: ModelMap[AgentKey]) => (m ? m.model : null)

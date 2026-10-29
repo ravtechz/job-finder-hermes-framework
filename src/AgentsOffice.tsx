@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AGENTS, AvatarControls } from './AgentsPage'
-import { useAgentActivity, type AgentActivity, type FeedEvent, type Run } from './agentActivity'
+import { useAgentActivity, useAgentModels, type AgentActivity, type FeedEvent, type Run } from './agentActivity'
 import { AgentAvatar, type AgentKey } from './avatars'
 
 type Worker = Exclude<AgentKey, 'milchick'>
@@ -53,6 +53,7 @@ function describe(key: Worker, a: AgentActivity | undefined, working: boolean) {
 
 export default function AgentsOffice() {
   const { activity, recent, skew } = useAgentActivity()
+  const models = useAgentModels()
   const [tick, setTick] = useState(0)             // 1 tick = 0,5 s
   const [sim, setSim] = useState<Partial<Record<Worker, boolean>>>({}) // doar în dev: forțează starea unui agent
   const [simOn, setSimOn] = useState(false)
@@ -132,12 +133,14 @@ export default function AgentsOffice() {
           <div className="acard-top"><span className="nm">MILCHICK</span><span className="label">BAY-00</span></div>
           <div className="label">FLOOR MANAGER</div>
           <div className="state">● {milState}</div>
+          <div className="model" title="Modelul configurat în Hermes">{models.milchick?.model ?? 'model necunoscut'}</div>
           <AvatarControls agent="milchick" name={mil.name} small />
         </div>
         {rows.map((r) => (
           <div key={r.key} className="acard" data-agent={r.key}>
             <div className="acard-top"><span className="nm">{meta(r.key).name.toUpperCase()}</span><span className="label">{r.bay}</span></div>
             <div className="label">{r.role}</div>
+            <div className="model" title={models[r.key]?.provider ? `Furnizor: ${models[r.key]?.provider}` : 'Modelul configurat în Hermes'}>{models[r.key]?.model ?? 'model necunoscut'}</div>
             <div className={`state ${r.working ? 'on' : 'off'}`}>● {describe(r.key, r.a, r.working)}{r.since !== null ? ` [${clock(r.since)}]` : ''}</div>
             {r.a && r.a.runs.length > 0 && (
               <div className="runs">
