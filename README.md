@@ -1,5 +1,9 @@
 # Job Dashboard
 
+<p align="center">
+  <img src="docs/job-dashboard-greeting.png" alt="Job Dashboard, tema Synthwave: statistici, filtre și lista de joburi evaluate" width="900">
+</p>
+
 Dashboard pentru agenții Hermes (Durian, Vadim, Tzanca). Un singur proces Node: API Express + SQLite + build React.
 
 ## Instalare pe un server nou
