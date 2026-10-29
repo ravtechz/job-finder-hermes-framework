@@ -37,16 +37,10 @@ html:not([data-theme="synthwave"]) .sw-only { display: none !important; }
 .is-open .chev { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) { .details, .chev { transition: none; } }
 
-/* tranziții între pagini: fade + urcare ușoară, apoi elementele intră eșalonat */
-@keyframes page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes item-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.page-fade { animation: page-in .45s cubic-bezier(.22, 1, .36, 1) both; }
-.page-fade > *, .page-fade .stats > *, .page-fade .job, .page-fade .box, .page-fade .desk, .page-fade .agent { animation: item-in .5s cubic-bezier(.22, 1, .36, 1) both; }
-.page-fade > *:nth-child(1), .page-fade .job:nth-child(1) { animation-delay: .02s; }
-.page-fade > *:nth-child(2), .page-fade .job:nth-child(2) { animation-delay: .06s; }
-.page-fade > *:nth-child(3), .page-fade .job:nth-child(3) { animation-delay: .10s; }
-.page-fade > *:nth-child(4), .page-fade .job:nth-child(4) { animation-delay: .14s; }
-.page-fade > *:nth-child(5), .page-fade .job:nth-child(5) { animation-delay: .18s; }
-.page-fade > *:nth-child(n+6), .page-fade .job:nth-child(n+6) { animation-delay: .22s; }
+/* tranziție între pagini: jaluzele verticale care se deschid în cascadă (sloturile se colorează din fundalul paginii) */
+.page-fade { position: relative; }
+.blinds { position: absolute; inset: 0; z-index: 30; display: flex; pointer-events: none; }
+.blinds i { flex: 1; background: var(--blinds-bg, #0b0b12); transform-origin: right center; margin-right: -1px; animation: blind-open .6s cubic-bezier(.76, 0, .24, 1) both; animation-delay: calc(var(--i) * 55ms); }
+@keyframes blind-open { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .tabs button, .theme-switch button { transition: background-color .3s ease, color .3s ease, border-color .3s ease, box-shadow .3s ease, opacity .3s ease; }
-@media (prefers-reduced-motion: reduce) { .page-fade, .page-fade * { animation: none !important; } .tabs button, .theme-switch button { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .blinds { display: none; } .tabs button, .theme-switch button { transition: none; } }

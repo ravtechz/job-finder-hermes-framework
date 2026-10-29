@@ -14,6 +14,21 @@ const today = () => new Intl.DateTimeFormat('en-CA').format(new Date()) // YYYY-
 
 const field = 'field rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900'
 
+function Blinds() {
+  const [bg] = useState(() => {
+    for (const el of [document.body, document.documentElement]) {
+      const c = getComputedStyle(el).backgroundColor
+      if (c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') return c
+    }
+    return '#0b0b12'
+  })
+  return (
+    <div className="blinds" aria-hidden style={{ '--blinds-bg': bg } as React.CSSProperties}>
+      {Array.from({ length: 10 }, (_, i) => <i key={i} style={{ '--i': i } as React.CSSProperties} />)}
+    </div>
+  )
+}
+
 function Stat({ label, value, tone, kind }: { label: string; value: string | number; tone: string; kind: string }) {
   return (
     <div className="stat rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900" data-kind={kind}>
@@ -30,6 +45,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState<'jobs' | 'cv' | 'profile' | 'agents'>('jobs')
+  const [blinds, setBlinds] = useState(false)
   const { theme } = useTheme()
 
   const load = useCallback(async () => {
@@ -91,7 +107,7 @@ export default function App() {
         <div className="sev-only side-menu">MENU</div>
         <nav role="tablist" className="tabs flex shrink-0 gap-1 self-start rounded-xl bg-slate-200 p-1 text-sm dark:bg-slate-800">
           {([['jobs', 'Joburi', 'Live desk'], ['cv', 'CV', 'Documente'], ['profile', 'Profil', 'Preferințe'], ['agents', 'Agenți', 'Birouri']] as const).map(([k, label, sub]) => (
-            <button key={k} role="tab" aria-selected={page === k} onClick={() => setPage(k)}
+            <button key={k} role="tab" aria-selected={page === k} onClick={() => { setPage(k); setBlinds(true) }}
                     className={`rounded-lg px-3 py-1 font-medium ${page === k ? 'bg-white shadow dark:bg-slate-600' : 'text-slate-600 dark:text-slate-300'}`}>
               <span className="tab-label">{label}</span>
               <span className="sev-only tab-sub">{sub}</span>
@@ -106,6 +122,7 @@ export default function App() {
 
       <main className="app-main">
       <div key={page} className="page-fade">
+      {blinds && <Blinds />}
       {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : page === 'agents' ? (theme === 'basic' ? <AgentsPage /> : <AgentsOffice />) : <>
 
       <div className="stats mb-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
