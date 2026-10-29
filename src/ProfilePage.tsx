@@ -78,7 +78,8 @@ export default function ProfilePage() {
     setBusy(false)
   }
 
-  if (loading) return <p className="text-sm text-slate-500">Se încarcă…</p>
+  // loc rezervat cât se încarcă: formularul apare apoi o singură dată, cu animația de intrare, fără „Se încarcă…” intermediar
+  if (loading) return <div className="min-h-[60vh]" aria-busy />
 
   const card = 'rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900'
   return (
