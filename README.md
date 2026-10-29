@@ -13,7 +13,9 @@ Ai nevoie de Linux cu systemd (testat pe Ubuntu), `sudo`, Node 20+, `git`, `rsyn
 git clone https://github.com/ravtechz/job-finder-hermes-framework.git ~/job-dashboard
 cd ~/job-dashboard && ./install.sh
 ```
-Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat). Aplicația ascultă doar pe `127.0.0.1:3333`; din laptop o deschizi printr-un tunel:
+Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți.
+
+**Securitate:** aplicația nu rulează ca tine și nu are root. Instalarea creează automat utilizatorul de sistem `jobdash`, fără login și fără `sudo`, iar serviciul rulează izolat sub el: nu vede home-ul tău (deci nici `~/.hermes`), nu poate obține privilegii în plus și scrie doar în `/opt/job-dashboard/data`. `.env` (cu cheile agenților) și baza de date sunt citibile doar de `jobdash`. Dacă cineva reușește să execute cod prin aplicație (de exemplu printr-un SQL injection), rămâne în acest cont limitat. Nu e un pas de făcut manual. `./install.sh --user` (pentru încercări) rulează aplicația ca tine, **fără** această izolare: nu-l folosi în producție. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat). Aplicația ascultă doar pe `127.0.0.1:3333`; din laptop o deschizi printr-un tunel:
 
 ```bash
 ssh -N -L 3333:127.0.0.1:3333 utilizator@server     # apoi http://localhost:3333
