@@ -7,20 +7,19 @@
 Dashboard pentru agenții Hermes (Durian, Vadim, Tzanca). Un singur proces Node: API Express + SQLite + build React.
 
 ## Instalare pe un server nou
-**Cerințe:** Linux cu systemd (testat pe Ubuntu), un utilizator cu `sudo`, Node 20+ (recomandat 22), `rsync` și `curl`, portul 3333 liber (sau altul, vezi pasul 3).
+**Cerințe:** Linux cu systemd (testat pe Ubuntu), un utilizator cu `sudo`, Node 20+ (recomandat 22), `git`, `rsync` și `curl`, portul 3333 liber (sau altul, vezi pasul 3).
 
 1. **Pregătește serverul**
    ```bash
    node -v                                  # trebuie să fie v20 sau mai nou
-   sudo apt install -y rsync curl           # dacă lipsesc
+   sudo apt install -y git rsync curl       # dacă lipsesc
    ```
    Dacă Node lipsește, instalează-l (de ex. NodeSource: https://github.com/nodesource/distributions, sau nvm). Dacă `npm install` se plânge de compilare (`better-sqlite3`): `sudo apt install -y build-essential python3`.
-2. **Adu codul pe server.** Din serverul vechi (copiază și istoricul git, dar nu `node_modules`, `dist` sau secrete):
+2. **Clonează codul.**
    ```bash
-   rsync -a --exclude node_modules --exclude dist --exclude .env ~/job-dashboard/ user@server-nou:~/job-dashboard/
+   git clone https://github.com/ravtechz/job-finder-hermes-framework.git ~/job-dashboard
    ```
-   (Dacă repo-ul ajunge pe un remote git: `git clone <url> ~/job-dashboard`.)
-3. **Opțional, înainte de instalare:** `cd ~/job-dashboard && cp .env.example .env`, apoi editezi `PORT`, `APP_TZ` și, dacă vrei să păstrezi cheile din serverul vechi, `AGENT_KEY=...` și `ORCH_KEY=...`. Fără `.env`, se folosesc valorile implicite și se generează chei noi.
+3. **Opțional, înainte de instalare:** `cd ~/job-dashboard && cp .env.example .env`, apoi editezi `PORT`, `APP_TZ` și, dacă vrei să refolosești cheile de pe o instalare anterioară, `AGENT_KEY=...` și `ORCH_KEY=...`. Fără `.env`, se folosesc valorile implicite și se generează chei noi.
 4. **Rulează instalarea**
    ```bash
    cd ~/job-dashboard && ./install.sh
@@ -32,14 +31,14 @@ Dashboard pentru agenții Hermes (Durian, Vadim, Tzanca). Un singur proces Node:
    curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3333/      # 200 (sau 401 dacă ai pus parolă)
    ```
 6. **Acces din laptop:** serverul ascultă doar pe 127.0.0.1; vezi „Acces de pe laptop” mai jos (tunel SSH).
-7. **Datele din serverul vechi (CV, profil, joburi), opțional.** Pe serverul vechi: `sudo jobdash backup`, apoi copiază ultimul fișier din `/opt/job-dashboard/backups/` (`sudo cat /opt/job-dashboard/backups/jobs-....db > ~/jobs.db`, apoi `scp`). Pe cel nou:
+7. **Migrarea datelor de pe o instalare anterioară (CV, profil, joburi), opțional**, doar dacă muți aplicația de pe alt server. Pe serverul vechi: `sudo jobdash backup`, apoi copiază ultimul fișier din `/opt/job-dashboard/backups/` (`sudo cat /opt/job-dashboard/backups/jobs-....db > ~/jobs.db`, apoi `scp`). Pe cel nou:
    ```bash
    sudo install -m 600 -o jobdash -g jobdash ~/jobs.db /opt/job-dashboard/backups/imported.db
    sudo jobdash restore /opt/job-dashboard/backups/imported.db
    shred -u ~/jobs.db        # și pe serverul vechi: copia din home conține CV-ul
    ```
 8. **Agenții Hermes:** instalarea generează două chei (`AGENT_KEY` și `ORCH_KEY`), dar agenții nu le au încă. Urmează pașii din secțiunea [Conectarea agenților Hermes](#conectarea-agenților-hermes).
-9. **Actualizare ulterioară:** aduci codul nou (`git pull` sau `rsync`) și rulezi din nou `./install.sh`. Nu atinge `.env`, baza sau backup-urile.
+9. **Actualizare ulterioară:** aduci codul nou (`cd ~/job-dashboard && git pull`) și rulezi din nou `./install.sh`. Nu atinge `.env`, baza sau backup-urile.
 
 Unde ajunge fiecare lucru:
 
