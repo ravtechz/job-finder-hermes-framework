@@ -105,7 +105,7 @@ export default function App() {
       </aside>
 
       <main className="app-main">
-      <div key={page} className="page-fade">
+      <div key={page} className={page === 'jobs' ? 'page-fade' : 'page-fade deep'}>
       {page === 'cv' ? <CvPage /> : page === 'profile' ? <ProfilePage /> : page === 'agents' ? (theme === 'basic' ? <AgentsPage /> : <AgentsOffice />) : <>
 
       <div className="stats mb-4 grid grid-cols-3 gap-2 sm:grid-cols-5">

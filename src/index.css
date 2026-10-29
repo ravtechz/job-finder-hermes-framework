@@ -49,5 +49,14 @@ html:not([data-theme="synthwave"]) .sw-only { display: none !important; }
 .page-fade > :nth-child(4), .page-fade .stats > :nth-child(4), .page-fade .job:nth-child(4) { --n: 3; }
 .page-fade > :nth-child(5), .page-fade .stats > :nth-child(5), .page-fade .job:nth-child(5) { --n: 4; }
 .page-fade > :nth-child(n+6), .page-fade .stats > :nth-child(n+6), .page-fade .job:nth-child(n+6) { --n: 5; }
+/* CV / Profil / Agenți au un singur element rădăcină: animăm copiii lui, nu rădăcina */
+.page-fade.deep > *, .page-fade.deep :is(.box, .desk, .agent, .job) { animation: none; }
+.page-fade.deep > * > * { animation: hero-in .75s cubic-bezier(.34, 1.4, .64, 1) both; animation-delay: calc(var(--n, 0) * 90ms); }
+.page-fade.deep > * > :nth-child(1) { --n: 0; }
+.page-fade.deep > * > :nth-child(2) { --n: 1; }
+.page-fade.deep > * > :nth-child(3) { --n: 2; }
+.page-fade.deep > * > :nth-child(4) { --n: 3; }
+.page-fade.deep > * > :nth-child(5) { --n: 4; }
+.page-fade.deep > * > :nth-child(n+6) { --n: 5; }
 .tabs button, .theme-switch button { transition: background-color .3s ease, color .3s ease, border-color .3s ease, box-shadow .3s ease, opacity .3s ease; }
 @media (prefers-reduced-motion: reduce) { .page-fade, .page-fade * { animation: none !important; } .tabs button, .theme-switch button { transition: none; } }
