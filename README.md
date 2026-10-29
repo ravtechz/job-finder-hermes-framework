@@ -35,7 +35,7 @@ sudoedit /opt/job-dashboard/.env       # configurare (port, fus orar, chei, paro
 **Actualizare:** `cd ~/job-dashboard && git pull && ./install.sh` (nu atinge `.env`, baza sau backup-urile).
 
 ## Conectarea agenților Hermes
-Fiecare agent are nevoie de o cheie și de instrucțiunile din [`AGENTS-API.md`](AGENTS-API.md). Cheile s-au generat la instalare: `AGENT_KEY` pentru Durian, Vadim și Tzanca, `ORCH_KEY` (doar citire) pentru Milchick.
+Fiecare agent are nevoie de o cheie, de un `SOUL.md` și de instrucțiunile din [`AGENTS-API.md`](AGENTS-API.md). Cheile s-au generat la instalare: `AGENT_KEY` pentru Durian, Vadim și Tzanca, `ORCH_KEY` (doar citire) pentru Milchick.
 
 1. **Ia cheile:** `sudo grep -E '^(AGENT|ORCH)_KEY=' /opt/job-dashboard/.env`
 2. **Pune-le în profilul fiecărui agent** (`~/.hermes/profiles/<agent>/.env`):
@@ -49,7 +49,7 @@ Fiecare agent are nevoie de o cheie și de instrucțiunile din [`AGENTS-API.md`]
      env_passthrough:
        - AGENT_KEY        # ORCH_KEY pentru Milchick
    ```
-4. **Spune-i agentului ce să facă:** în `SOUL.md`, „înainte de fiecare rulare citești `AGENTS-API.md` (secțiunea «Reguli comune» și a ta) și urmezi exact pașii de acolo”.
+4. **Dă-i `SOUL.md`:** gata făcute în [`agents/`](agents/) (Durian, Vadim, Tzanca, Milchick), cu exemple de `config.yaml`. `cp agents/vadim/SOUL.md ~/.hermes/profiles/vadim/` și la fel pentru ceilalți; ele îi trimit agentului la `AGENTS-API.md`.
 5. **Repornește Hermes și testează** din interiorul agentului (trebuie să răspundă `200`):
    ```bash
    systemctl --user restart hermes-gateway

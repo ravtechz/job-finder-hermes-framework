@@ -1,0 +1,23 @@
+# Se adaugă în ~/.hermes/profiles/milchick/config.yaml (alături de model și restul setărilor tale).
+# Milchick folosește pluginul advanced-delegation: `hermes plugins install advanced-delegation`
+# (necesită Hermes 0.22.5+; pluginul se instalează în profilul care deleagă, adică milchick).
+plugins:
+  enabled:
+    - advanced-delegation
+
+delegation:
+  backend: profile_routes
+  backends:
+    profile_routes:
+      default: durian
+      profiles:                 # profilurile trebuie să existe deja (hermes profile list)
+        - name: durian
+          description: Caută joburi noi și le trimite în dashboard
+        - name: vadim
+          description: Evaluează joburile din dashboard față de CV și profil
+        - name: tzanca
+          description: Propune modificări de CV pentru un job APPLY, doar la cerere
+
+terminal:
+  env_passthrough:
+    - ORCH_KEY                  # cheia doar-citire; Milchick nu primește AGENT_KEY

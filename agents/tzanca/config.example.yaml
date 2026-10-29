@@ -1,0 +1,5 @@
+# Se adaugă în ~/.hermes/profiles/tzanca/config.yaml (alături de model și restul setărilor tale).
+# Fără asta, Hermes ascunde AGENT_KEY din comenzile agentului, fiindcă arată ca un secret.
+terminal:
+  env_passthrough:
+    - AGENT_KEY
