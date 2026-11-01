@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Instalează timerul care pornește Tzanca când ceri sugestii de CV din dashboard (butonul „Marchează APPLY”).
+# Instalează timerul (la fiecare minut) care: pornește Tzanca când ceri sugestii de CV din dashboard (butonul „Marchează APPLY”),
+# sincronizează modelele agenților și raportează ce agenți rulează acum (din logurile Hermes), pentru tabul „Agenți”.
 # Rulează ca utilizatorul sub care rulează Hermes (și root, dacă acolo rulează Hermes), FĂRĂ sudo:  ./deploy/install-tzanca-runner.sh
 # Dezinstalare:  ./deploy/install-tzanca-runner.sh --remove
 set -euo pipefail
@@ -11,7 +12,7 @@ UNITS="$HOME/.config/systemd/user"
 
 if [ "${1:-}" = "--remove" ]; then
   systemctl --user disable --now job-dashboard-tzanca.timer 2>/dev/null || true
-  rm -f "$UNITS/job-dashboard-tzanca.service" "$UNITS/job-dashboard-tzanca.timer" "$BIN" "$(dirname "$BIN")/job-dashboard-sync-agent-models"
+  rm -f "$UNITS/job-dashboard-tzanca.service" "$UNITS/job-dashboard-tzanca.timer" "$BIN" "$(dirname "$BIN")/job-dashboard-sync-agent-models" "$(dirname "$BIN")/job-dashboard-report-agent-activity"
   systemctl --user daemon-reload
   echo "Eliminat."; exit 0
 fi
@@ -22,6 +23,7 @@ command -v hermes >/dev/null || echo "Atenție: 'hermes' nu e în PATH; setează
 mkdir -p "$HOME/.local/bin" "$UNITS"
 install -m 755 "$HERE/tzanca-runner.sh" "$BIN"
 install -m 755 "$HERE/sync-agent-models.sh" "$(dirname "$BIN")/job-dashboard-sync-agent-models"
+install -m 755 "$HERE/report-agent-activity.sh" "$(dirname "$BIN")/job-dashboard-report-agent-activity"
 # PATH-ul de utilizator din systemd e minimal: hermes e de obicei în ~/.local/bin
 cat > "$UNITS/job-dashboard-tzanca.service" <<UNIT
 [Unit]

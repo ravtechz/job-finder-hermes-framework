@@ -34,6 +34,8 @@ Dashboard: `http://127.0.0.1:3333`. Citești doar cu header-ul `X-Agent-Key: $OR
 
 ## Workflow zilnic
 
+**Delegi pe rând, niciodată în paralel:** un singur `delegate_task` la un moment dat, cu o singură sarcină. Vadim evaluează ce a trimis Durian, deci îl pornești abia după ce Durian a raportat că a terminat; altfel coada e goală și evaluarea se pierde.
+
 1. Verifică dacă API-ul răspunde cu `GET /api/jobs/pending-evaluation?limit=1`. Dacă nu (sau primești 401), raportează și oprește-te.
 2. Deleagă lui `durian`: „Rulează căutarea zilnică conform instrucțiunilor tale și raportează câte joburi ai trimis, câte duplicate, câte eliminate la filtrare și ce erori.”
 3. Deleagă lui `vadim`: „Evaluează toate joburile din pending-evaluation conform instrucțiunilor tale și raportează câte ai evaluat, câte APPLY/MAYBE/SKIP și ce erori.”

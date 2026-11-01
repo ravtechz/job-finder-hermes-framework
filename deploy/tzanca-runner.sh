@@ -22,6 +22,10 @@ TIMEOUT=${TZANCA_TIMEOUT:-900}
 STATE=${XDG_STATE_HOME:-$HOME/.local/state}/job-dashboard-tzanca
 mkdir -p "$STATE/done"
 
+# starea agenților pentru tabul „Agenți” (din logurile Hermes). ÎNAINTE de lock: trebuie să meargă și cât rulează Tzanca
+HERE=$(dirname "$(readlink -f "$0")")
+for f in "$HERE/job-dashboard-report-agent-activity" "$HERE/report-agent-activity.sh"; do [ -x "$f" ] && { "$f" >/dev/null 2>&1 || true; break; }; done
+
 # o singură instanță: o rulare a lui Tzanca poate dura mai mult de un minut
 exec 9>"$STATE/lock"
 flock -n 9 || exit 0
@@ -33,7 +37,6 @@ fi
 if [ -z "$KEY" ]; then echo "AGENT_KEY lipsește (nici în mediu, nici în $ENV_FILE)" >&2; exit 1; fi
 
 # modelele agenților pentru tabul „Agenți” (un singur PUT mic; eșecul nu oprește restul)
-HERE=$(dirname "$(readlink -f "$0")")
 for f in "$HERE/job-dashboard-sync-agent-models" "$HERE/sync-agent-models.sh"; do [ -x "$f" ] && { "$f" >/dev/null 2>&1 || true; break; }; done
 
 resp=$(curl -sS --max-time 20 -w '\n%{http_code}' -H "X-Agent-Key: $KEY" "$DASH_URL/api/jobs/pending-cv?requested=1&limit=20") || { echo "dashboard-ul nu răspunde ($DASH_URL)" >&2; exit 0; }

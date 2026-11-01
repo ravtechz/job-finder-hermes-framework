@@ -52,7 +52,7 @@ function describe(key: Worker, a: AgentActivity | undefined, working: boolean) {
 }
 
 export default function AgentsOffice() {
-  const { activity, recent, skew } = useAgentActivity()
+  const { activity, recent, skew, milchickWorking } = useAgentActivity()
   const models = useAgentModels()
   const [tick, setTick] = useState(0)             // 1 tick = 0,5 s
   const [sim, setSim] = useState<Partial<Record<Worker, boolean>>>({}) // doar în dev: forțează starea unui agent
@@ -76,7 +76,7 @@ export default function AgentsOffice() {
     return { ...d, i, a, working, since }
   }), [activity, skew, sim, tick])  // tick: recalculează „de la ultima activitate” în fiecare secundă
   const atDesk = rows.filter((r) => r.working).length
-  const milState = activity ? (atDesk ? `orchestrează · ${atDesk}/3 agenți la birou` : 'supraveghează · 0/3 agenți la birou') : 'se conectează…'
+  const milState = activity ? (atDesk || milchickWorking ? `orchestrează · ${atDesk}/3 agenți la birou` : 'supraveghează · 0/3 agenți la birou') : 'se conectează…'
   const mil = meta('milchick')
 
   return (

@@ -21,7 +21,7 @@ Apoi te conectezi ca `hermes` și instalezi Hermes și aplicația cu acest utili
 cd ~ && git clone https://github.com/ravtechz/job-finder-hermes-framework.git
 cd ~/job-finder-hermes-framework && ./install.sh
 ```
-Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat).
+Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat). Pe Ubuntu/Debian instalează și bibliotecile de sistem de care are nevoie browserul agenților (Chromium); fără ele Durian nu poate deschide anunțurile (`--no-browser-libs` le sare).
 
 **3. Acces din laptop:** aplicația ascultă doar pe `127.0.0.1:3333`, deci o deschizi printr-un tunel:
 ```bash
@@ -71,7 +71,12 @@ Fiecare agent are nevoie de o cheie, de un `SOUL.md` și de instrucțiunile din 
    ```bash
    vi ~/.hermes/profiles/durian/SOUL.md     # la fel: vadim, tzanca, milchick
    ```
-5. **Repornește Hermes și testează** din interiorul agentului (trebuie să răspundă `200`):
+5. **Instalează ajutorul de pe serverul Hermes** (opțional, dar recomandat; rulează ca utilizatorul sub care rulează Hermes, fără sudo):
+   ```bash
+   cd ~/job-finder-hermes-framework && ./deploy/install-tzanca-runner.sh
+   ```
+   Un timer (la fiecare minut) face trei lucruri: pornește Tzanca când apeși „Marchează APPLY”, arată în tabul **Agenți** modelul fiecărui agent și, citind logurile Hermes, îi pune la birou pe cei care rulează acum.
+6. **Repornește Hermes și testează** din interiorul agentului (trebuie să răspundă `200`):
    ```bash
    systemctl --user restart hermes-gateway
    hermes -p vadim -z 'Rulează în terminal: curl -s -o /dev/null -w "%{http_code}" -H "X-Agent-Key: $AGENT_KEY" http://127.0.0.1:3333/api/jobs/pending-evaluation?limit=1'

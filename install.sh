@@ -4,15 +4,17 @@
 #                              backup zilnic, parolă bcrypt (cere sudo)
 #   ./install.sh --user        rapid, fără sudo: serviciu systemd de utilizator, fără izolare (doar pentru încercări)
 #   ./install.sh --no-password nu întreba parola dashboard-ului (o setezi mai târziu, vezi README)
+#   ./install.sh --no-browser-libs  nu instala bibliotecile de sistem pentru browserul agenților (Chromium)
 # E sigur să-l rulezi din nou: actualizează codul și repornește serviciul, fără să atingă .env, baza sau backup-urile.
 set -euo pipefail
 
-MODE=prod; ASK_PASSWORD=1
+MODE=prod; ASK_PASSWORD=1; BROWSER_LIBS=1
 for a in "$@"; do
   case "$a" in
     --user) MODE=user ;;
     --no-password) ASK_PASSWORD=0 ;;
-    -h|--help) sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --no-browser-libs) BROWSER_LIBS=0 ;;
+    -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Opțiune necunoscută: $a (vezi ./install.sh --help)"; exit 1 ;;
   esac
 done
@@ -38,6 +40,25 @@ if [ "$MODE" = prod ]; then
   for c in rsync curl; do command -v "$c" >/dev/null || die "lipsește '$c' (ex. sudo apt install $c)."; done
   [ "$(id -u)" = 0 ] || echo "==> Cer sudo (creează utilizatorul jobdash și instalează serviciile)"
   ensure_sudo
+fi
+
+# ---------- biblioteci pentru browserul agenților (Chromium al lui Hermes) ----------
+# Pe un server nou lipsesc, iar Chromium nu pornește ("exit code 127"): Durian nu poate deschide anunțurile.
+# Numele diferă între versiuni de Ubuntu/Debian (24.04 are sufixul t64), deci îl alegem pe cel care există.
+if [ "$MODE" = prod ] && [ "$BROWSER_LIBS" = 1 ] && command -v apt-get >/dev/null; then
+  echo "==> Instalez bibliotecile de sistem pentru browserul agenților (sari peste cu --no-browser-libs)"
+  PKGS=()
+  for pair in "libatk1.0-0t64|libatk1.0-0" "libatk-bridge2.0-0t64|libatk-bridge2.0-0" "libcups2t64|libcups2" \
+              "libatspi2.0-0t64|libatspi2.0-0" "libxdamage1" "libcairo2" "libpango-1.0-0" "libasound2t64|libasound2"; do
+    IFS='|' read -ra opts <<< "$pair"
+    for p in "${opts[@]}"; do
+      if apt-cache policy "$p" 2>/dev/null | grep -q 'Candidate: [^(]'; then PKGS+=("$p"); break; fi
+    done
+  done
+  if [ "${#PKGS[@]}" -gt 0 ]; then
+    S env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${PKGS[@]}" >/dev/null \
+      || echo "Atenție: bibliotecile browserului nu s-au instalat. Durian va merge fără browser; le poți instala mai târziu manual (vezi README)."
+  fi
 fi
 
 # ---------- dependențe + build (ca utilizator normal) ----------

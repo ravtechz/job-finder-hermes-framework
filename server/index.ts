@@ -40,7 +40,7 @@ const same = (a: string, b: string) => crypto.timingSafeEqual(sha(a), sha(b))
 
 const AGENT_ROUTES = new Set([
   'GET /api/jobs/seen', 'POST /api/jobs', 'GET /api/jobs/pending-evaluation', 'GET /api/jobs/pending-cv',
-  'GET /api/profile', 'PUT /api/agents/models', 'GET /api/cv', 'GET /api/cv/file', 'POST /api/evaluations', 'POST /api/cv-suggestions',
+  'GET /api/profile', 'PUT /api/agents/models', 'PUT /api/agents/heartbeat', 'GET /api/cv', 'GET /api/cv/file', 'POST /api/evaluations', 'POST /api/cv-suggestions',
 ])
 
 // Orchestratorul doar citește: verificarea progresului și detaliul unui job. Fără scrieri.
@@ -413,7 +413,23 @@ function groupRuns(times: string[]) {
   return runs.map((r) => ({ start: new Date(r.startMs).toISOString(), end: new Date(r.endMs).toISOString(), count: r.count }))
 }
 
+// Semnal „agentul rulează acum”, raportat de deploy/report-agent-activity.sh din logurile Hermes (serverul nu vede ~/.hermes).
+// Completează starea dedusă din scrieri: un agent poate căuta minute întregi fără să scrie nimic în dashboard.
+const HEARTBEAT_WINDOW_S = 150   // dacă raportorul se oprește, agentul revine pe bancă după atât
+const heartbeatSchema = z.partialRecord(z.enum(['durian', 'vadim', 'tzanca', 'milchick']), z.boolean())
+
+api.put('/agents/heartbeat', wrap((req, res) => {
+  const body = parse(heartbeatSchema, req.body)
+  const at = now()
+  const up = db.prepare('INSERT INTO agent_heartbeats (agent, at) VALUES (?, ?) ON CONFLICT(agent) DO UPDATE SET at = excluded.at')
+  const del = db.prepare('DELETE FROM agent_heartbeats WHERE agent = ?')
+  db.transaction(() => { for (const [a, on] of Object.entries(body)) on ? up.run(a, at) : del.run(a) })()
+  res.json({ ok: true })
+}))
+
 api.get('/agents/activity', wrap((_req, res) => {
+  const beats = Object.fromEntries((db.prepare('SELECT agent, at FROM agent_heartbeats').all() as Row[]).map((r) => [r.agent as string, r.at as string]))
+  const beating = (a: string) => !!beats[a] && (Date.now() - Date.parse(beats[a])) / 1000 <= HEARTBEAT_WINDOW_S
   const last = (sql: string) => db.prepare(sql).get() as Row | undefined
   const shape = (r: Row | undefined) => ({ last_at: r?.at ?? null, last_title: r?.title ?? null, last_company: r?.company ?? null })
   const fresh = (at: string | null | undefined) => !!at && (Date.now() - Date.parse(at)) / 1000 <= WORKING_WINDOW_S
@@ -445,12 +461,14 @@ api.get('/agents/activity', wrap((_req, res) => {
     now: now(),
     working_window_seconds: WORKING_WINDOW_S,
     run_gap_seconds: RUN_GAP_S,
+    orchestrator: { working: beating('milchick') },
     agents: {
-      durian: { ...durian, working: fresh(durian.last_at), pending_requests: 0, runs: runs.durian },
-      vadim: { ...vadim, working: fresh(vadim.last_at), pending_requests: 0, runs: runs.vadim },
+      durian: { ...durian, working: fresh(durian.last_at) || beating('durian'), active_now: beating('durian'), pending_requests: 0, runs: runs.durian },
+      vadim: { ...vadim, working: fresh(vadim.last_at) || beating('vadim'), active_now: beating('vadim'), pending_requests: 0, runs: runs.vadim },
       tzanca: {
         ...(pending.length ? shape(pending[0]) : tzanca),
-        working: pending.length > 0 || fresh(tzanca.last_at),
+        working: pending.length > 0 || fresh(tzanca.last_at) || beating('tzanca'),
+        active_now: beating('tzanca'),
         pending_requests: pending.length,
         runs: runs.tzanca,
       },
@@ -462,7 +480,7 @@ api.get('/agents/activity', wrap((_req, res) => {
 // ---------- modelul folosit de fiecare agent (afișat în tabul Agenți) ----------
 // Serverul nu poate citi configurația Hermes (rulează sub alt utilizator), deci modelul e raportat din afară:
 // deploy/sync-agent-models.sh îl citește din ~/.hermes/profiles/*/config.yaml și îl trimite aici cu AGENT_KEY.
-const modelsSchema = z.record(
+const modelsSchema = z.partialRecord(
   z.enum(['durian', 'vadim', 'tzanca', 'milchick']),
   z.object({ model: z.string().trim().min(1).max(80), provider: z.string().trim().max(40).nullish() }).nullable(),
 )
