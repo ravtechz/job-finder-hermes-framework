@@ -108,10 +108,17 @@ if [ "$HAS_HASH" = 0 ] && [ "$ASK_PASSWORD" = 1 ] && [ -t 0 ]; then
   if [[ ! "$ans" =~ ^[nN] ]]; then
     read -r -p "Utilizator [admin]: " user; user=${user:-admin}
     [[ "$user" =~ ^[A-Za-z0-9_.-]+$ ]] || die "utilizator invalid (doar litere, cifre, _ . -)."
-    read -r -s -p "Parolă (minim 10 caractere): " p1; echo
+    read -r -s -p "Parolă (recomandat minim 10 caractere): " p1; echo
     read -r -s -p "Repetă parola: " p2; echo
     [ "$p1" = "$p2" ] || die "parolele nu coincid. Rulează din nou ./install.sh (e sigur)."
-    LINE=$(printf '%s' "$p1" | npx --no-install tsx scripts/hash-password.ts) || die "parola nu a fost acceptată."
+    WEAK=0
+    if [ "${#p1}" -lt 10 ]; then
+      echo "Atenție: parola are sub 10 caractere. E ușor de ghicit; potrivită doar pentru demo sau teste, nu pentru un server expus."
+      read -r -p "O folosești oricum? [d/N] " weak
+      [[ "$weak" =~ ^[dDyY] ]] || die "parolă respinsă. Rulează din nou ./install.sh (e sigur) și alege una mai lungă."
+      WEAK=1
+    fi
+    LINE=$(printf '%s' "$p1" | ALLOW_WEAK_PASSWORD=$WEAK npx --no-install tsx scripts/hash-password.ts) || die "parola nu a fost acceptată."
     unset p1 p2
     S env LINE="$LINE" USERNAME="$user" bash -c '
       f=/opt/job-dashboard/.env

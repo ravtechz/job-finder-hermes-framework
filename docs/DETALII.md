@@ -66,7 +66,7 @@ Directorul sursă (`~/job-dashboard`) rămâne locul în care lucrezi și nu con
 | `BACKUP_DIR` / `BACKUP_KEEP` | `./backups` / `14` | unde se scriu backup-urile și câte se păstrează |
 
 ## Parola dashboard-ului (Basic Auth)
-Parola nu se stochează în clar. Generezi un hash bcrypt (parola se tastează ascuns, minim 10 caractere):
+Parola nu se stochează în clar. Generezi un hash bcrypt (parola se tastează ascuns, recomandat minim 10 caractere; una mai scurtă merge doar cu `ALLOW_WEAK_PASSWORD=1`, pentru teste):
 ```bash
 cd ~/job-dashboard && npm run hash-password
 # => DASH_PASS_HASH='$2b$10$....'
