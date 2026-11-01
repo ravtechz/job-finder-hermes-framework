@@ -231,7 +231,7 @@ Scrierile pentru CV, profil, status și reevaluare merg doar din UI (cereri făr
 ## Acces de pe laptop
 Serverul ascultă doar pe 127.0.0.1. Din laptop (după ce ai activat parola din secțiunea de mai sus):
 ```bash
-ssh -N -L 3333:127.0.0.1:3333 utilizator@adresa-serverului
+ssh -L 3333:127.0.0.1:3333 utilizator@adresa-serverului
 ```
 apoi deschide http://localhost:3333.
 

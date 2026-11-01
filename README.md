@@ -25,7 +25,7 @@ Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dash
 
 **3. Acces din laptop:** aplicația ascultă doar pe `127.0.0.1:3333`, deci o deschizi printr-un tunel:
 ```bash
-ssh -N -L 3333:127.0.0.1:3333 hermes@server     # apoi http://localhost:3333
+ssh -L 3333:127.0.0.1:3333 hermes@server     # lasă sesiunea deschisă; apoi http://localhost:3333
 ```
 
 **Securitate**
