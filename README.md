@@ -57,7 +57,7 @@ Fiecare agent are nevoie de o cheie, de un `SOUL.md` și de instrucțiunile din 
    for a in durian vadim tzanca; do echo -e "\nAGENT_KEY=$KEY" >> ~/.hermes/profiles/$a/.env; done
    echo -e "\nORCH_KEY=$(sudo grep -m1 '^ORCH_KEY=' /opt/job-dashboard/.env | cut -d= -f2-)" >> ~/.hermes/profiles/milchick/.env
    ```
-3. **Permite variabila în terminalul agentului**, altfel Hermes o ascunde (e „secretă”):
+3. **Lasă cheia să ajungă la comenzile agentului.** Hermes ascunde implicit din comenzile din terminal variabilele care par secrete (nume cu `KEY`, `TOKEN`...). Agentul își trimite cheia cu `curl -H "X-Agent-Key: $AGENT_KEY"`; dacă variabila e ascunsă, e goală și primește `401`. Comenzile de mai jos o trec pe lista celor permise:
    ```bash
    for a in durian vadim tzanca; do hermes -p $a config set terminal.env_passthrough '["AGENT_KEY"]'; done
    hermes -p milchick config set terminal.env_passthrough '["ORCH_KEY"]'
