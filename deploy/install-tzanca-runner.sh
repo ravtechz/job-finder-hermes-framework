@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Instalează timerul care pornește Tzanca când ceri sugestii de CV din dashboard (butonul „Marchează APPLY”).
-# Rulează ca utilizatorul sub care rulează Hermes, FĂRĂ sudo:  ./deploy/install-tzanca-runner.sh
+# Rulează ca utilizatorul sub care rulează Hermes (și root, dacă acolo rulează Hermes), FĂRĂ sudo:  ./deploy/install-tzanca-runner.sh
 # Dezinstalare:  ./deploy/install-tzanca-runner.sh --remove
 set -euo pipefail
-[ "$(id -u)" -ne 0 ] || { echo "Rulează ca utilizatorul Hermes, nu ca root." >&2; exit 1; }
+# Rulează ca utilizatorul sub care rulează Hermes (poate fi și root, pe un server nou unde Hermes rulează ca root).
+systemctl --user show-environment >/dev/null 2>&1 || { echo "Nu există o sesiune systemd de utilizator. Conectează-te prin SSH (nu prin su/sudo) sau rulează: export XDG_RUNTIME_DIR=/run/user/$(id -u)" >&2; exit 1; }
 HERE=$(cd "$(dirname "$0")" && pwd)
 BIN="$HOME/.local/bin/job-dashboard-tzanca-runner"
 UNITS="$HOME/.config/systemd/user"

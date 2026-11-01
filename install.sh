@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Instalează Job Dashboard pe acest server. Rulează din rădăcina proiectului, ca utilizator normal (nu root).
+# Instalează Job Dashboard pe acest server. Rulează din rădăcina proiectului, ca utilizator normal cu sudo sau direct ca root (ex. server nou Hostinger).
 #   ./install.sh               producție: utilizator dedicat "jobdash", cod în /opt/job-dashboard, secrete 600/700,
 #                              backup zilnic, parolă bcrypt (cere sudo)
 #   ./install.sh --user        rapid, fără sudo: serviciu systemd de utilizator, fără izolare (doar pentru încercări)
@@ -22,8 +22,11 @@ APP=/opt/job-dashboard
 cd "$DIR"
 die() { echo "Eroare: $*" >&2; exit 1; }
 # sudo fără parolă merge direct; altfel cerem parola o dată (și o reînnoim înainte de pașii care au nevoie)
-ensure_sudo() { sudo -n true 2>/dev/null || sudo -v; }
-[ "$(id -u)" != 0 ] || die "rulează ca utilizator normal, nu ca root; scriptul cere sudo singur când are nevoie."
+ensure_sudo() { [ "$(id -u)" = 0 ] || sudo -n true 2>/dev/null || sudo -v; }
+# S = „rulează privilegiat”: direct dacă ești deja root (nu e nevoie de sudo), altfel prin sudo
+S() { if [ "$(id -u)" = 0 ]; then "$@"; else sudo "$@"; fi; }
+# Aplicația nu rulează niciodată ca root: serviciul folosește utilizatorul dedicat „jobdash”, indiferent cine instalează.
+[ "$(id -u)" != 0 ] || [ "${MODE}" = prod ] || die "varianta --user nu merge ca root (nu există sesiune systemd de utilizator). Rulează fără --user: instalarea de producție merge direct ca root."
 
 # ---------- verificări ----------
 command -v node >/dev/null || die "Node nu e instalat (necesar 20+; recomandat 22). Vezi README, secțiunea „Instalare pe un server nou”."
@@ -31,9 +34,9 @@ command -v node >/dev/null || die "Node nu e instalat (necesar 20+; recomandat 2
 command -v npm >/dev/null || die "npm lipsește."
 command -v systemctl >/dev/null || die "systemd lipsește. Pornește manual cu: npm run build && npm start"
 if [ "$MODE" = prod ]; then
-  command -v sudo >/dev/null || die "sudo lipsește (necesar pentru varianta de producție). Folosește --user pentru încercări."
+  [ "$(id -u)" = 0 ] || command -v sudo >/dev/null || die "sudo lipsește (necesar pentru varianta de producție). Rulează ca root sau instalează sudo."
   for c in rsync curl; do command -v "$c" >/dev/null || die "lipsește '$c' (ex. sudo apt install $c)."; done
-  echo "==> Cer sudo (creează utilizatorul jobdash și instalează serviciile)"
+  [ "$(id -u)" = 0 ] || echo "==> Cer sudo (creează utilizatorul jobdash și instalează serviciile)"
   ensure_sudo
 fi
 
@@ -87,9 +90,9 @@ fi
 
 # ---------- varianta de producție ----------
 ensure_sudo
-HAD_ENV=0; sudo test -f "$APP/.env" && HAD_ENV=1
+HAD_ENV=0; S test -f "$APP/.env" && HAD_ENV=1
 NODE_BIN="$(readlink -f "$(command -v node)")"
-sudo NODE_BIN="$NODE_BIN" "$DIR/deploy/deploy.sh"
+S env NODE_BIN="$NODE_BIN" "$DIR/deploy/deploy.sh"
 
 # la prima instalare deploy.sh a copiat .env din sursă; copia din home nu mai trebuie să rămână lizibilă
 if [ "$HAD_ENV" = 0 ] && [ -f "$DIR/.env" ]; then
@@ -97,7 +100,7 @@ if [ "$HAD_ENV" = 0 ] && [ -f "$DIR/.env" ]; then
 fi
 
 # ---------- parola dashboard-ului ----------
-HAS_HASH=0; sudo grep -q "^DASH_PASS_HASH=.\+" "$APP/.env" && HAS_HASH=1
+HAS_HASH=0; S grep -q "^DASH_PASS_HASH=.\+" "$APP/.env" && HAS_HASH=1
 if [ "$HAS_HASH" = 0 ] && [ "$ASK_PASSWORD" = 1 ] && [ -t 0 ]; then
   echo
   echo "Dashboard-ul nu are parolă. Fără ea, restricțiile pentru agenți se pot ocoli (vezi README)."
@@ -110,26 +113,27 @@ if [ "$HAS_HASH" = 0 ] && [ "$ASK_PASSWORD" = 1 ] && [ -t 0 ]; then
     [ "$p1" = "$p2" ] || die "parolele nu coincid. Rulează din nou ./install.sh (e sigur)."
     LINE=$(printf '%s' "$p1" | npx --no-install tsx scripts/hash-password.ts) || die "parola nu a fost acceptată."
     unset p1 p2
-    sudo env LINE="$LINE" USERNAME="$user" bash -c '
+    S env LINE="$LINE" USERNAME="$user" bash -c '
       f=/opt/job-dashboard/.env
       grep -vE "^(DASH_USER|DASH_PASS|DASH_PASS_HASH)=" "$f" > "$f.new" || true
       printf "DASH_USER=%s\n%s\n" "$USERNAME" "$LINE" >> "$f.new"
       chown --reference="$f" "$f.new"; chmod 600 "$f.new"; mv "$f.new" "$f"'
-    sudo systemctl restart job-dashboard
+    S systemctl restart job-dashboard
     sleep 3
     echo "==> Parola setată (stocată ca hash bcrypt) pentru utilizatorul '$user'."
   fi
 fi
 
 # ---------- rezumat ----------
-PORT=$(sudo grep -E '^PORT=' "$APP/.env" | cut -d= -f2); PORT=${PORT:-3333}
+SU="sudo "; [ "$(id -u)" != 0 ] || SU=""   # ca root, comenzile din rezumat se rulează fără sudo
+PORT=$(S grep -E '^PORT=' "$APP/.env" | cut -d= -f2); PORT=${PORT:-3333}
 IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 echo
 echo "================ Instalare încheiată ================"
 echo "Serviciu:      $(systemctl is-active job-dashboard) (rulează ca utilizatorul jobdash)"
-echo "Basic Auth:    $(sudo grep -q '^DASH_PASS_HASH=.\+' "$APP/.env" && echo activ || echo 'OPRIT - setează o parolă (README, „Parola dashboard-ului”)')"
+echo "Basic Auth:    $(S grep -q '^DASH_PASS_HASH=.\+' "$APP/.env" && echo activ || echo 'OPRIT - setează o parolă (README, „Parola dashboard-ului”)')"
 echo "Acces:         serverul ascultă doar pe 127.0.0.1:$PORT. Din laptop:"
 echo "               ssh -N -L $PORT:127.0.0.1:$PORT $USER@${IP:-<ip-server>}   apoi http://localhost:$PORT"
-echo "Cheile agenților: sudo grep -E '^(AGENT|ORCH)_KEY' $APP/.env   (AGENT_KEY pentru Durian/Vadim/Tzanca, ORCH_KEY pentru Milchick)"
-echo "Administrare:  sudo jobdash {status|logs|restart|seed|seed:clear|backup|restore FILE}"
+echo "Cheile agenților: ${SU}grep -E '^(AGENT|ORCH)_KEY' $APP/.env   (AGENT_KEY pentru Durian/Vadim/Tzanca, ORCH_KEY pentru Milchick)"
+echo "Administrare:  ${SU}jobdash {status|logs|restart|seed|seed:clear|backup|restore FILE}"
 echo "Instrucțiuni pentru agenți: $DIR/AGENTS-API.md"

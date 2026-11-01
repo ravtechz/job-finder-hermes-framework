@@ -7,7 +7,7 @@
 Dashboard pentru agenții Hermes care caută joburi: **Durian** le găsește, **Vadim** le evaluează, **Tzanca** propune modificări de CV, **Milchick** supervizează. Un singur proces Node (API Express + SQLite + interfață React), cu trei teme: Basic, Severance, Synthwave.
 
 ## Instalare pe un server nou
-Ai nevoie de Linux cu systemd (testat pe Ubuntu), `sudo`, Node 20+, `git`, `rsync` și `curl`.
+Ai nevoie de Linux cu systemd (testat pe Ubuntu), `sudo` sau direct root (cum vine un server nou, ex. Hostinger), Node 20+, `git`, `rsync` și `curl`.
 
 ```bash
 git clone https://github.com/ravtechz/job-finder-hermes-framework.git ~/job-dashboard
@@ -15,7 +15,7 @@ cd ~/job-dashboard && ./install.sh
 ```
 Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți.
 
-**Securitate:** aplicația nu rulează ca tine și nu are root. Instalarea creează automat utilizatorul de sistem `jobdash`, fără login și fără `sudo`, iar serviciul rulează izolat sub el: nu vede home-ul tău (deci nici `~/.hermes`), nu poate obține privilegii în plus și scrie doar în `/opt/job-dashboard/data`. `.env` (cu cheile agenților) și baza de date sunt citibile doar de `jobdash`. Dacă cineva reușește să execute cod prin aplicație (de exemplu printr-un SQL injection), rămâne în acest cont limitat. Nu e un pas de făcut manual. `./install.sh --user` (pentru încercări) rulează aplicația ca tine, **fără** această izolare: nu-l folosi în producție. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat). Aplicația ascultă doar pe `127.0.0.1:3333`; din laptop o deschizi printr-un tunel:
+**Securitate:** aplicația nu rulează ca tine și nu are root. Instalarea creează automat utilizatorul de sistem `jobdash`, fără login și fără `sudo`, iar serviciul rulează izolat sub el: nu vede home-ul tău (deci nici `~/.hermes`), nu poate obține privilegii în plus și scrie doar în `/opt/job-dashboard/data`. `.env` (cu cheile agenților) și baza de date sunt citibile doar de `jobdash`. Dacă cineva reușește să execute cod prin aplicație (de exemplu printr-un SQL injection), rămâne în acest cont limitat. Nu e un pas de făcut manual. `./install.sh --user` (pentru încercări) rulează aplicația ca tine, **fără** această izolare: nu-l folosi în producție. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat). Poți rula scriptul și ca root (cazul unui server nou Hostinger): doar instalarea are nevoie de root, aplicația rulează oricum sub `jobdash`, nu ca root. Ca root, comenzile de mai jos merg fără `sudo`. Aplicația ascultă doar pe `127.0.0.1:3333`; din laptop o deschizi printr-un tunel:
 
 ```bash
 ssh -N -L 3333:127.0.0.1:3333 utilizator@server     # apoi http://localhost:3333
@@ -23,7 +23,7 @@ ssh -N -L 3333:127.0.0.1:3333 utilizator@server     # apoi http://localhost:3333
 
 ## Administrare
 ```bash
-sudo jobdash status          # starea serviciului și a backup-ului
+sudo jobdash status          # (ca root, fără sudo) starea serviciului și a backup-ului
 sudo jobdash restart         # repornire (după orice schimbare în .env)
 sudo jobdash logs -f         # loguri live (fără -f: ultimele 50 de linii)
 sudo systemctl stop job-dashboard      # oprire (pornire: start; la boot: enable / disable)
