@@ -159,13 +159,11 @@ sudo grep -E '^(AGENT|ORCH)_KEY=' /opt/job-dashboard/.env
 ```
 Dacă o cheie lipsește sau vrei alta: `openssl rand -hex 24`, o pui cu `sudoedit /opt/job-dashboard/.env`, apoi `sudo jobdash restart`. Nu pune cheile în repo și nu le trimite în chat sau e-mail.
 
-**2. Pune cheia în mediul agentului.** În Hermes, fiecare agent e un profil în `~/.hermes/profiles/<nume>/`. Adaugi cheia în `.env`-ul profilului (fișier cu permisiuni `600`; `printf` cu `\n` în față ca să nu se lipească de ultima linie):
+**2. Pune cheia în mediul agentului.** În Hermes, fiecare agent e un profil în `~/.hermes/profiles/<nume>/`. Adaugi cheia în `.env`-ul profilului (fișier cu permisiuni `600`; `echo -e` cu `\n` în față ca să nu se lipească de ultima linie):
 ```bash
-cd ~/.hermes/profiles
-printf '\nAGENT_KEY=<valoarea>\n' >> durian/.env
-printf '\nAGENT_KEY=<valoarea>\n' >> vadim/.env
-printf '\nAGENT_KEY=<valoarea>\n' >> tzanca/.env
-printf '\nORCH_KEY=<valoarea>\n'  >> milchick/.env
+KEY=$(sudo grep -m1 '^AGENT_KEY=' /opt/job-dashboard/.env | cut -d= -f2-)
+for a in durian vadim tzanca; do echo -e "\nAGENT_KEY=$KEY" >> ~/.hermes/profiles/$a/.env; done
+echo -e "\nORCH_KEY=$(sudo grep -m1 '^ORCH_KEY=' /opt/job-dashboard/.env | cut -d= -f2-)" >> ~/.hermes/profiles/milchick/.env
 ```
 
 **3. Permite variabila în comenzile agentului.** Hermes scoate implicit din comenzile din terminal orice variabilă care arată a secret (nume cu `KEY`, `TOKEN`...), deci agentul ar vedea `$AGENT_KEY` gol. Adaugă numele variabilei în `config.yaml` al aceluiași profil:

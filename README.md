@@ -50,11 +50,12 @@ nano /opt/job-dashboard/.env      # configurare (port, fus orar, chei, parolă);
 ## Conectarea agenților Hermes
 Fiecare agent are nevoie de o cheie, de un `SOUL.md` și de instrucțiunile din [`AGENTS-API.md`](AGENTS-API.md). Cheile s-au generat la instalare: `AGENT_KEY` pentru Durian, Vadim și Tzanca, `ORCH_KEY` (doar citire) pentru Milchick.
 
-1. **Ia cheile:** `sudo grep -E '^(AGENT|ORCH)_KEY=' /opt/job-dashboard/.env`
-2. **Pune-le în profilul fiecărui agent** (`~/.hermes/profiles/<agent>/.env`):
+1. **Vezi cheile** (opțional): `sudo grep -E '^(AGENT|ORCH)_KEY=' /opt/job-dashboard/.env`
+2. **Pune-le în profilul fiecărui agent** (`~/.hermes/profiles/<agent>/.env`); comenzile le citesc singure din aplicație:
    ```bash
-   printf '\nAGENT_KEY=<valoarea>\n' >> ~/.hermes/profiles/vadim/.env     # la fel pentru durian și tzanca
-   printf '\nORCH_KEY=<valoarea>\n'  >> ~/.hermes/profiles/milchick/.env
+   KEY=$(sudo grep -m1 '^AGENT_KEY=' /opt/job-dashboard/.env | cut -d= -f2-)
+   for a in durian vadim tzanca; do echo -e "\nAGENT_KEY=$KEY" >> ~/.hermes/profiles/$a/.env; done
+   echo -e "\nORCH_KEY=$(sudo grep -m1 '^ORCH_KEY=' /opt/job-dashboard/.env | cut -d= -f2-)" >> ~/.hermes/profiles/milchick/.env
    ```
 3. **Permite variabila în terminalul agentului**, altfel Hermes o ascunde (e „secretă”). În `~/.hermes/profiles/<agent>/config.yaml`:
    ```yaml
