@@ -7,19 +7,32 @@
 Dashboard pentru agenții Hermes care caută joburi: **Durian** le găsește, **Vadim** le evaluează, **Tzanca** propune modificări de CV, **Milchick** supervizează. Un singur proces Node (API Express + SQLite + interfață React), cu trei teme: Basic, Severance, Synthwave.
 
 ## Instalare pe un server nou
-Ai nevoie de Linux cu systemd (testat pe Ubuntu), `sudo` sau direct root (cum vine un server nou, ex. Hostinger), Node 20+, `git`, `rsync` și `curl`.
+Ai nevoie de Linux cu systemd (testat pe Ubuntu), Node 20+, `git`, `rsync` și `curl`.
 
+**1. Creează un utilizator normal** (recomandat; mai ales dacă pe acest server rulează și agenții Hermes). Un server nou vine de obicei doar cu `root`:
+```bash
+adduser hermes && usermod -aG sudo hermes
+rsync --archive --chown=hermes:hermes ~/.ssh /home/hermes     # ca să te poți conecta direct cu el
+loginctl enable-linger hermes                                 # timerul lui Tzanca merge și fără sesiune
+```
+Apoi te conectezi ca `hermes` și instalezi Hermes și aplicația cu acest utilizator.
+
+**2. Instalează aplicația:**
 ```bash
 git clone https://github.com/ravtechz/job-finder-hermes-framework.git ~/job-dashboard
 cd ~/job-dashboard && ./install.sh
 ```
-Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți.
+Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat).
 
-**Securitate:** aplicația nu rulează ca tine și nu are root. Instalarea creează automat utilizatorul de sistem `jobdash`, fără login și fără `sudo`, iar serviciul rulează izolat sub el: nu vede home-ul tău (deci nici `~/.hermes`), nu poate obține privilegii în plus și scrie doar în `/opt/job-dashboard/data`. `.env` (cu cheile agenților) și baza de date sunt citibile doar de `jobdash`. Dacă cineva reușește să execute cod prin aplicație (de exemplu printr-un SQL injection), rămâne în acest cont limitat. Nu e un pas de făcut manual. `./install.sh --user` (pentru încercări) rulează aplicația ca tine, **fără** această izolare: nu-l folosi în producție. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat). Poți rula scriptul și ca root (cazul unui server nou Hostinger): doar instalarea are nevoie de root, aplicația rulează oricum sub `jobdash`, nu ca root. Ca root, comenzile de mai jos merg fără `sudo`. Aplicația ascultă doar pe `127.0.0.1:3333`; din laptop o deschizi printr-un tunel:
-
+**3. Acces din laptop:** aplicația ascultă doar pe `127.0.0.1:3333`, deci o deschizi printr-un tunel:
 ```bash
-ssh -N -L 3333:127.0.0.1:3333 utilizator@server     # apoi http://localhost:3333
+ssh -N -L 3333:127.0.0.1:3333 hermes@server     # apoi http://localhost:3333
 ```
+
+**Securitate**
+- Aplicația rulează sub utilizatorul dedicat `jobdash` (creat automat), fără login și fără `sudo`. E izolată: nu vede home-ul tău (nici `~/.hermes`), scrie doar în `/opt/job-dashboard/data`, iar `.env` și baza de date sunt citibile doar de `jobdash`. Dacă cineva execută cod prin aplicație (de exemplu printr-un SQL injection), rămâne în acest cont limitat.
+- **Nu rula agenții Hermes ca root.** Ei execută comenzi și citesc anunțuri scrise de necunoscuți; un anunț cu instrucțiuni ascunse (prompt injection) ar rula comenzi cu drepturi depline: ar citi baza cu CV-ul, cheile și tot serverul. Ca utilizator normal, paguba rămâne în contul lui.
+- `./install.sh` merge și ca root (de exemplu pe un server nou, doar pentru probe; comenzile `sudo` din README merg atunci fără `sudo`). `./install.sh --user` rulează aplicația ca tine, **fără** izolare: doar pentru încercări.
 
 ## Administrare
 ```bash
