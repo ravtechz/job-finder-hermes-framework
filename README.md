@@ -57,11 +57,10 @@ Fiecare agent are nevoie de o cheie, de un `SOUL.md` și de instrucțiunile din 
    for a in durian vadim tzanca; do echo -e "\nAGENT_KEY=$KEY" >> ~/.hermes/profiles/$a/.env; done
    echo -e "\nORCH_KEY=$(sudo grep -m1 '^ORCH_KEY=' /opt/job-dashboard/.env | cut -d= -f2-)" >> ~/.hermes/profiles/milchick/.env
    ```
-3. **Permite variabila în terminalul agentului**, altfel Hermes o ascunde (e „secretă”). În `~/.hermes/profiles/<agent>/config.yaml`:
-   ```yaml
-   terminal:
-     env_passthrough:
-       - AGENT_KEY        # ORCH_KEY pentru Milchick
+3. **Permite variabila în terminalul agentului**, altfel Hermes o ascunde (e „secretă”):
+   ```bash
+   for a in durian vadim tzanca; do hermes -p $a config set terminal.env_passthrough '["AGENT_KEY"]'; done
+   hermes -p milchick config set terminal.env_passthrough '["ORCH_KEY"]'
    ```
 4. **Dă-i `SOUL.md`:** gata făcute în [`agents/`](agents/) (Durian, Vadim, Tzanca, Milchick), cu exemple de `config.yaml`. `cp agents/vadim/SOUL.md ~/.hermes/profiles/vadim/` și la fel pentru ceilalți; ele îi trimit agentului la `AGENTS-API.md`.
 5. **Repornește Hermes și testează** din interiorul agentului (trebuie să răspundă `200`):

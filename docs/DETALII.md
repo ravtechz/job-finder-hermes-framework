@@ -179,7 +179,7 @@ terminal:
   env_passthrough:
     - ORCH_KEY
 ```
-Dacă profilul are deja o secțiune `terminal:`, adaugi doar `env_passthrough` în ea (fără a o dubla).
+Dacă profilul are deja o secțiune `terminal:`, adaugi doar `env_passthrough` în ea (fără a o dubla). Sau, fără editare de mână: `hermes -p <agent> config set terminal.env_passthrough '["AGENT_KEY"]'` (înlocuiește lista existentă, deci o folosești doar dacă profilul nu mai are alte variabile permise).
 
 **4. Dă-le instrucțiunile.** În `SOUL.md` (sau promptul) fiecărui agent pui că, înainte de fiecare rulare, citește `AGENTS-API.md` (secțiunea „Reguli comune” și secțiunea lui) și urmează exact pașii de acolo. Exemplu de paragraf:
 ```markdown
