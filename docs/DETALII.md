@@ -216,6 +216,8 @@ systemctl --user list-timers job-dashboard-tzanca.timer      # starea timerului
 journalctl --user -u job-dashboard-tzanca -f                 # ce a rulat și ce a răspuns Tzanca
 ./deploy/install-tzanca-runner.sh --remove                   # dezinstalare
 ```
+**Pornire fără sesiune:** timerul e un serviciu de utilizator, deci se oprește când te deconectezi de la SSH. Ca să ruleze mereu, o singură dată, ca root: `loginctl enable-linger <utilizatorul-hermes>` (installerul îți amintește singur).
+
 Cerințe: `AGENT_KEY` în `~/.hermes/profiles/tzanca/.env` (vezi „Conectarea agenților Hermes”), `curl`, `flock`, `python3` și `hermes` în PATH. Variabile opționale (în `Environment=` din unitatea `~/.config/systemd/user/job-dashboard-tzanca.service`): `DASH_URL`, `TZANCA_PROFILE`, `TZANCA_ENV_FILE`, `HERMES_BIN`, `TZANCA_TIMEOUT`. Ca să meargă și fără sesiune deschisă: `sudo loginctl enable-linger $USER`. Întârzierea dintre click și pornirea lui Tzanca e de cel mult un minut. Dacă agenții rulează pe alt calculator, rulează instalarea acolo și setează `DASH_URL` (tunel SSH).
 
 ## Acces pentru agenți (AGENT_KEY)

@@ -12,8 +12,8 @@ Ai nevoie de Linux cu systemd (testat pe Ubuntu), Node 20+, `git`, `rsync` și `
 **1. Creează un utilizator normal** (recomandat; mai ales dacă pe acest server rulează și agenții Hermes). Un server nou vine de obicei doar cu `root`:
 ```bash
 adduser hermes && usermod -aG sudo hermes
-rsync --archive --chown=hermes:hermes ~/.ssh /home/hermes     # ca să te poți conecta direct cu el
-loginctl enable-linger hermes                                 # timerul lui Tzanca merge și fără sesiune
+mkdir -p /home/hermes/.ssh && cp ~/.ssh/authorized_keys /home/hermes/.ssh/     # aceeași cheie SSH ca la root
+chown -R hermes:hermes /home/hermes/.ssh && chmod 700 /home/hermes/.ssh
 ```
 Apoi te conectezi ca `hermes` și instalezi Hermes și aplicația cu acest utilizator.
 
