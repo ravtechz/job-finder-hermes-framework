@@ -34,13 +34,14 @@ ssh -N -L 3333:127.0.0.1:3333 hermes@server     # apoi http://localhost:3333
 - `./install.sh` merge și ca root (de exemplu pe un server nou, doar pentru probe; comenzile `sudo` din README merg atunci fără `sudo`). `./install.sh --user` rulează aplicația ca tine, **fără** izolare: doar pentru încercări.
 
 ## Administrare
+Comenzile cer drepturi de root: dacă ești utilizator normal, pune `sudo` în față (ca root, le scrii exact așa).
 ```bash
-sudo jobdash status          # (ca root, fără sudo) starea serviciului și a backup-ului
-sudo jobdash restart         # repornire (după orice schimbare în .env)
-sudo jobdash logs -f         # loguri live (fără -f: ultimele 50 de linii)
-sudo systemctl stop job-dashboard      # oprire (pornire: start; la boot: enable / disable)
-sudo jobdash backup          # copie a bazei de date
-sudoedit /opt/job-dashboard/.env       # configurare (port, fus orar, chei, parolă)
+jobdash status          # starea serviciului și a backup-ului
+jobdash restart         # repornire (după orice schimbare în .env)
+jobdash logs -f         # loguri live (fără -f: ultimele 50 de linii)
+systemctl stop job-dashboard      # oprire (pornire: start; la boot: enable / disable)
+jobdash backup          # copie a bazei de date
+nano /opt/job-dashboard/.env      # configurare (port, fus orar, chei, parolă); ca utilizator normal: sudoedit
 ```
 **Loguri:** le gestionează systemd, deci sunt în jurnal: `sudo journalctl -u job-dashboard`. **Date:** baza SQLite e în `/opt/job-dashboard/data/`, backup-urile în `/opt/job-dashboard/backups/`.
 
