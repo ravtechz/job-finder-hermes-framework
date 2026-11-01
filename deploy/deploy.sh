@@ -29,7 +29,7 @@ fi
 FIRST=0; [ -f "$APP/.env" ] || FIRST=1
 if [ "$FIRST" = 1 ]; then
   # portul din .env-ul pregătit în sursă (sau implicit din .env.example)
-  PORT=$(grep -hE '^PORT=' "$SRC/.env" "$SRC/.env.example" 2>/dev/null | head -1 | cut -d= -f2); PORT=${PORT:-3333}
+  PORT=$(grep -hE '^PORT=' "$SRC/.env" "$SRC/.env.example" 2>/dev/null | head -1 | cut -d= -f2 || true); PORT=${PORT:-3333}
   if ss -ltn | grep -q ":$PORT " && ! systemctl is-active --quiet job-dashboard; then
     die "portul $PORT e ocupat. Dacă e o instalare veche: systemctl --user disable --now job-dashboard (sau schimbă PORT în .env)."
   fi

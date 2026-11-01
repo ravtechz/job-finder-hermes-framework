@@ -55,7 +55,7 @@ if [ "$MODE" = user ]; then
   grep -q '^AGENT_KEY=.\+' .env || { sed -i "s|^AGENT_KEY=.*|AGENT_KEY=$(new_key)|" .env; echo "==> Am generat AGENT_KEY în .env"; }
   grep -q '^ORCH_KEY=.\+' .env || { if grep -q '^ORCH_KEY=' .env; then sed -i "s|^ORCH_KEY=.*|ORCH_KEY=$(new_key)|" .env; else echo "ORCH_KEY=$(new_key)" >> .env; fi; echo "==> Am generat ORCH_KEY în .env"; }
   chmod 600 .env
-  PORT=$(grep -E '^PORT=' .env | cut -d= -f2); PORT=${PORT:-3333}
+  PORT=$(grep -E "^PORT=" .env | cut -d= -f2 || true); PORT=${PORT:-3333}
   if ss -ltn | grep -q ":$PORT " && ! systemctl --user is-active --quiet job-dashboard; then die "portul $PORT e ocupat."; fi
   echo "==> Configurez serviciul systemd de utilizator"
   mkdir -p "$HOME/.config/systemd/user"
@@ -126,7 +126,7 @@ fi
 
 # ---------- rezumat ----------
 SU="sudo "; [ "$(id -u)" != 0 ] || SU=""   # ca root, comenzile din rezumat se rulează fără sudo
-PORT=$(S grep -E '^PORT=' "$APP/.env" | cut -d= -f2); PORT=${PORT:-3333}
+PORT=$(S grep -E "^PORT=" "$APP/.env" | cut -d= -f2 || true); PORT=${PORT:-3333}
 IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 echo
 echo "================ Instalare încheiată ================"
