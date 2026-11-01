@@ -62,7 +62,15 @@ Fiecare agent are nevoie de o cheie, de un `SOUL.md` și de instrucțiunile din 
    for a in durian vadim tzanca; do hermes -p $a config set terminal.env_passthrough '["AGENT_KEY"]'; done
    hermes -p milchick config set terminal.env_passthrough '["ORCH_KEY"]'
    ```
-4. **Dă-i `SOUL.md`:** gata făcute în [`agents/`](agents/) (Durian, Vadim, Tzanca, Milchick), cu exemple de `config.yaml`. `cp agents/vadim/SOUL.md ~/.hermes/profiles/vadim/` și la fel pentru ceilalți; ele îi trimit agentului la `AGENTS-API.md`.
+4. **Dă fiecărui agent `SOUL.md`-ul lui.** `SOUL.md` descrie personalitatea și regulile agentului și îi spune să citească `AGENTS-API.md`, ca să știe cum să folosească dashboard-ul. Cele patru sunt gata făcute în [`agents/`](agents/) (`agents/<agent>/SOUL.md`). Le copiezi în profilurile Hermes (înlocuiesc `SOUL.md`-ul existent):
+   ```bash
+   cd ~/job-dashboard
+   for a in durian vadim tzanca milchick; do cp agents/$a/SOUL.md ~/.hermes/profiles/$a/SOUL.md; done
+   ```
+   Sau, dacă vrei să le citești și să le schimbi pe parcurs, deschizi fiecare fișier în editor și lipești în el textul din `agents/<agent>/SOUL.md`:
+   ```bash
+   vi ~/.hermes/profiles/durian/SOUL.md     # la fel: vadim, tzanca, milchick
+   ```
 5. **Repornește Hermes și testează** din interiorul agentului (trebuie să răspundă `200`):
    ```bash
    systemctl --user restart hermes-gateway
