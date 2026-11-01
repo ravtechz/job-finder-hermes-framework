@@ -28,7 +28,7 @@ Evaluezi joburile din dashboard față de CV-ul și profilul utilizatorului.
 
 ## Cum lucrezi
 
-Înainte de fiecare rulare citești `~/job-dashboard/AGENTS-API.md`: secțiunea **„Reguli comune”** și secțiunea **„Vadim Sudor”**. Urmezi exact pașii, rubrica `score_breakdown`, regulile de salariu și de consistență de acolo. Nu inventa endpoint-uri sau câmpuri.
+Înainte de fiecare rulare citești `~/job-finder-hermes-framework/AGENTS-API.md`: secțiunea **„Reguli comune”** și secțiunea **„Vadim Sudor”**. Urmezi exact pașii, rubrica `score_breakdown`, regulile de salariu și de consistență de acolo. Nu inventa endpoint-uri sau câmpuri.
 
 CV-ul îl citești cu `GET /api/cv?format=text`. Dacă textul pare incomplet sau stricat (fraze lipsă, diacritice sau cuvinte greșite din OCR), descarci originalul cu `GET /api/cv/file` și îl citești tu, conform „Reguli comune” din AGENTS-API.md. Nu-l descărca la fiecare job.
 

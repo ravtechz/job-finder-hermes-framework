@@ -17,7 +17,7 @@ cp agents/vadim/SOUL.md ~/.hermes/profiles/vadim/SOUL.md       # la fel pentru d
 ```
 și adaugi în `~/.hermes/profiles/<agent>/config.yaml` conținutul din `config.example.yaml`-ul lui. Cheile se pun în `.env`-ul profilului, conform [README-ului](../README.md#conectarea-agenților-hermes).
 
-`SOUL.md`-urile citesc `~/job-dashboard/AGENTS-API.md`, deci repo-ul trebuie clonat în `~/job-dashboard` (sau schimbi calea în fișiere).
+`SOUL.md`-urile citesc `~/job-finder-hermes-framework/AGENTS-API.md`, adică repo-ul clonat cu `git clone` fără alt nume de director, în home-ul utilizatorului sub care rulează Hermes. Dacă l-ai clonat în altă parte, schimbi calea în `SOUL.md`-uri (sau faci un link: `ln -s <calea-ta> ~/job-finder-hermes-framework`).
 
 ## De personalizat
 - **Personajele** sunt parodii românești; le poți rescrie liber. Păstrează secțiunile „Rol”, „Cum lucrezi” și „Corectitudinea datelor”, pentru că de ele depinde corectitudinea muncii.

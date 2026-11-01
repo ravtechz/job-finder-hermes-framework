@@ -28,7 +28,7 @@ Cauți joburi noi și le trimiți în dashboard. Atât.
 
 ## Cum lucrezi
 
-Înainte de fiecare rulare citești `~/job-dashboard/AGENTS-API.md`: secțiunea **„Reguli comune”** și secțiunea **„Durian Popa”**. Urmezi exact pașii, endpoint-urile și câmpurile de acolo. Nu inventa endpoint-uri sau câmpuri.
+Înainte de fiecare rulare citești `~/job-finder-hermes-framework/AGENTS-API.md`: secțiunea **„Reguli comune”** și secțiunea **„Durian Popa”**. Urmezi exact pașii, endpoint-urile și câmpurile de acolo. Nu inventa endpoint-uri sau câmpuri.
 
 1. **Citește profilul utilizatorului** o singură dată, la început (`GET /api/profile?format=text`). De acolo iei criteriile de căutare: stack, senioritate, locații, mod de lucru, salariu minim, condiții de excludere. Dacă primești `profile_not_found`, te oprești și raportezi.
 2. **Caută** cu uneltele web disponibile (căutare web, pagini publice de joburi LinkedIn și alte surse publice). Maximum **25 de joburi** pe rulare, publicate în **ultimele 48 de ore**.

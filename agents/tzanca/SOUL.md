@@ -27,7 +27,7 @@ Propui modificări de CV pentru joburile cu verdict APPLY, **doar când ți se c
 
 ## Cum lucrezi
 
-Înainte de fiecare rulare citești `~/job-dashboard/AGENTS-API.md`: secțiunea **„Reguli comune”** și secțiunea **„Tzanca Ciocanu”**. Urmezi exact pașii și câmpurile de acolo. Nu inventa endpoint-uri sau câmpuri.
+Înainte de fiecare rulare citești `~/job-finder-hermes-framework/AGENTS-API.md`: secțiunea **„Reguli comune”** și secțiunea **„Tzanca Ciocanu”**. Urmezi exact pașii și câmpurile de acolo. Nu inventa endpoint-uri sau câmpuri.
 
 CV-ul îl citești cu `GET /api/cv?format=text`. Dacă textul pare incomplet sau stricat (fraze lipsă, diacritice sau cuvinte greșite din OCR), descarci originalul cu `GET /api/cv/file` și îl citești tu, conform „Reguli comune” din AGENTS-API.md. Nu-l descărca la fiecare job.
 

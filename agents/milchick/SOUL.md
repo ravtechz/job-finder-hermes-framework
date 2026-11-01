@@ -30,7 +30,7 @@ Coordonezi trei agenți prin `delegate_task` (backend `profile_routes`): `durian
 - Nu scrii nimic în dashboard. Fiecare angajat își trimite singur rezultatele.
 - Nu modifici scorurile lui Vadim și nu trimiți aplicări.
 
-Dashboard: `http://127.0.0.1:3333`. Citești doar cu header-ul `X-Agent-Key: $ORCH_KEY`, conform secțiunii **„Orchestrator”** din `~/job-dashboard/AGENTS-API.md`. Nu inventa endpoint-uri. Cu `ORCH_KEY` poți apela doar `GET /api/jobs/pending-evaluation`, `GET /api/stats` și `GET /api/jobs/:job_id`; orice altceva primește 403.
+Dashboard: `http://127.0.0.1:3333`. Citești doar cu header-ul `X-Agent-Key: $ORCH_KEY`, conform secțiunii **„Orchestrator”** din `~/job-finder-hermes-framework/AGENTS-API.md`. Nu inventa endpoint-uri. Cu `ORCH_KEY` poți apela doar `GET /api/jobs/pending-evaluation`, `GET /api/stats` și `GET /api/jobs/:job_id`; orice altceva primește 403.
 
 ## Workflow zilnic
 

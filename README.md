@@ -18,8 +18,8 @@ Apoi te conectezi ca `hermes` și instalezi Hermes și aplicația cu acest utili
 
 **2. Instalează aplicația:**
 ```bash
-git clone https://github.com/ravtechz/job-finder-hermes-framework.git ~/job-dashboard
-cd ~/job-dashboard && ./install.sh
+cd ~ && git clone https://github.com/ravtechz/job-finder-hermes-framework.git
+cd ~/job-finder-hermes-framework && ./install.sh
 ```
 Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat).
 
@@ -45,7 +45,7 @@ nano /opt/job-dashboard/.env      # configurare (port, fus orar, chei, parolă);
 ```
 **Loguri:** le gestionează systemd, deci sunt în jurnal: `sudo journalctl -u job-dashboard`. **Date:** baza SQLite e în `/opt/job-dashboard/data/`, backup-urile în `/opt/job-dashboard/backups/`.
 
-**Actualizare:** `cd ~/job-dashboard && git pull && ./install.sh` (nu atinge `.env`, baza sau backup-urile).
+**Actualizare:** `cd ~/job-finder-hermes-framework && git pull && ./install.sh` (nu atinge `.env`, baza sau backup-urile).
 
 ## Conectarea agenților Hermes
 Fiecare agent are nevoie de o cheie, de un `SOUL.md` și de instrucțiunile din [`AGENTS-API.md`](AGENTS-API.md). Cheile s-au generat la instalare: `AGENT_KEY` pentru Durian, Vadim și Tzanca, `ORCH_KEY` (doar citire) pentru Milchick.
@@ -64,7 +64,7 @@ Fiecare agent are nevoie de o cheie, de un `SOUL.md` și de instrucțiunile din 
    ```
 4. **Dă fiecărui agent `SOUL.md`-ul lui.** `SOUL.md` descrie personalitatea și regulile agentului și îi spune să citească `AGENTS-API.md`, ca să știe cum să folosească dashboard-ul. Cele patru sunt gata făcute în [`agents/`](agents/) (`agents/<agent>/SOUL.md`). Le copiezi în profilurile Hermes (înlocuiesc `SOUL.md`-ul existent):
    ```bash
-   cd ~/job-dashboard
+   cd ~/job-finder-hermes-framework
    for a in durian vadim tzanca milchick; do cp agents/$a/SOUL.md ~/.hermes/profiles/$a/SOUL.md; done
    ```
    Sau, dacă vrei să le citești și să le schimbi pe parcurs, deschizi fiecare fișier în editor și lipești în el textul din `agents/<agent>/SOUL.md`:

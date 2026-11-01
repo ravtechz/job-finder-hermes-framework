@@ -15,12 +15,12 @@ Dashboard pentru agenții Hermes (Durian, Vadim, Tzanca). Un singur proces Node:
    Dacă Node lipsește, instalează-l (de ex. NodeSource: https://github.com/nodesource/distributions, sau nvm). Dacă `npm install` se plânge de compilare (`better-sqlite3`): `sudo apt install -y build-essential python3`.
 2. **Clonează codul.**
    ```bash
-   git clone https://github.com/ravtechz/job-finder-hermes-framework.git ~/job-dashboard
+   cd ~ && git clone https://github.com/ravtechz/job-finder-hermes-framework.git
    ```
-3. **Opțional, înainte de instalare:** `cd ~/job-dashboard && cp .env.example .env`, apoi editezi `PORT`, `APP_TZ` și, dacă vrei să refolosești cheile de pe o instalare anterioară, `AGENT_KEY=...` și `ORCH_KEY=...`. Fără `.env`, se folosesc valorile implicite și se generează chei noi.
+3. **Opțional, înainte de instalare:** `cd ~/job-finder-hermes-framework && cp .env.example .env`, apoi editezi `PORT`, `APP_TZ` și, dacă vrei să refolosești cheile de pe o instalare anterioară, `AGENT_KEY=...` și `ORCH_KEY=...`. Fără `.env`, se folosesc valorile implicite și se generează chei noi.
 4. **Rulează instalarea**
    ```bash
-   cd ~/job-dashboard && ./install.sh
+   cd ~/job-finder-hermes-framework && ./install.sh
    ```
    Face singur: `npm ci` + build, utilizatorul de sistem `jobdash` (fără shell), codul în `/opt/job-dashboard`, `.env`/baza/backup-urile cu permisiuni 600/700, serviciul systemd, timerul de backup și comanda `sudo jobdash`. La final te întreabă dacă vrei să setezi acum utilizatorul și parola dashboard-ului (recomandat; stocată ca hash bcrypt). `./install.sh --no-password` sare peste întrebare; `./install.sh --help` arată opțiunile.
 5. **Verifică**
@@ -36,7 +36,7 @@ Dashboard pentru agenții Hermes (Durian, Vadim, Tzanca). Un singur proces Node:
    shred -u ~/jobs.db        # și pe serverul vechi: copia din home conține CV-ul
    ```
 8. **Agenții Hermes:** instalarea generează două chei (`AGENT_KEY` și `ORCH_KEY`), dar agenții nu le au încă. Urmează pașii din secțiunea [Conectarea agenților Hermes](#conectarea-agenților-hermes).
-9. **Actualizare ulterioară:** aduci codul nou (`cd ~/job-dashboard && git pull`) și rulezi din nou `./install.sh`. Nu atinge `.env`, baza sau backup-urile.
+9. **Actualizare ulterioară:** aduci codul nou (`cd ~/job-finder-hermes-framework && git pull`) și rulezi din nou `./install.sh`. Nu atinge `.env`, baza sau backup-urile.
 
 Unde ajunge fiecare lucru:
 
@@ -47,9 +47,9 @@ Unde ajunge fiecare lucru:
 | Baza SQLite | `/opt/job-dashboard/data/` | `jobdash`, `700` (fișierele `600`) |
 | Backup-uri | `/opt/job-dashboard/backups/` | `jobdash`, `700` |
 
-Directorul sursă (`~/job-dashboard`) rămâne locul în care lucrezi și nu conține secrete. Dacă existase un `.env` acolo, la prima instalare e mutat în `/opt` și copia din home e ștearsă. Pașii de mai sus pot fi făcuți și manual: `npm ci && npm run build`, apoi `sudo NODE_BIN="$(which node)" deploy/deploy.sh`.
+Directorul sursă (`~/job-finder-hermes-framework`) rămâne locul în care lucrezi și nu conține secrete. Dacă existase un `.env` acolo, la prima instalare e mutat în `/opt` și copia din home e ștearsă. Pașii de mai sus pot fi făcuți și manual: `npm ci && npm run build`, apoi `sudo NODE_BIN="$(which node)" deploy/deploy.sh`.
 
-**Variantă rapidă, fără sudo și fără izolare** (doar pentru încercări): `./install.sh --user` (serviciu systemd de utilizator, rulează ca tine, `.env` și baza rămân în `~/job-dashboard`). Nu o folosi pe aceeași mașină cu varianta de producție (ambele vor același port).
+**Variantă rapidă, fără sudo și fără izolare** (doar pentru încercări): `./install.sh --user` (serviciu systemd de utilizator, rulează ca tine, `.env` și baza rămân în `~/job-finder-hermes-framework`). Nu o folosi pe aceeași mașină cu varianta de producție (ambele vor același port).
 
 **Probleme frecvente:** `sudo jobdash logs` arată erorile serviciului; „portul e ocupat” înseamnă alt proces pe același `PORT` (schimbă-l în `.env`); `install.sh` refuză să ruleze ca root (rulează-l ca utilizator normal, cere sudo singur).
 
@@ -68,7 +68,7 @@ Directorul sursă (`~/job-dashboard`) rămâne locul în care lucrezi și nu con
 ## Parola dashboard-ului (Basic Auth)
 Parola nu se stochează în clar. Generezi un hash bcrypt (parola se tastează ascuns, recomandat minim 10 caractere; una mai scurtă merge doar cu `ALLOW_WEAK_PASSWORD=1`, pentru teste):
 ```bash
-cd ~/job-dashboard && npm run hash-password
+cd ~/job-finder-hermes-framework && npm run hash-password
 # => DASH_PASS_HASH='$2b$10$....'
 sudoedit /opt/job-dashboard/.env      # adaugi DASH_USER=... și linia DASH_PASS_HASH='...' (ghilimele simple obligatorii)
 sudo jobdash restart
@@ -83,7 +83,7 @@ sudo jobdash seed | seed:clear         # date de test (comenzile npm nu mai merg
 sudo jobdash backup | restore FILE
 sudoedit /opt/job-dashboard/.env       # după orice schimbare: sudo jobdash restart
 ```
-Dezvoltare (în `~/job-dashboard`, pe altă bază, nu pe cea de producție): `PORT=3400 DB_PATH=/tmp/dev.db npm run dev:server` + `npm run dev` (Vite pe 5173, proxy către API; ajustează portul în `vite.config.ts` dacă nu e 3333).
+Dezvoltare (în `~/job-finder-hermes-framework`, pe altă bază, nu pe cea de producție): `PORT=3400 DB_PATH=/tmp/dev.db npm run dev:server` + `npm run dev` (Vite pe 5173, proxy către API; ajustează portul în `vite.config.ts` dacă nu e 3333).
 
 ## CV
 Din dashboard: tab-ul **CV** (încarcă PDF, DOCX, TXT sau MD, ori lipește textul). Se păstrează un singur CV, cel mai recent. Serverul extrage textul (`unpdf` pentru PDF, `mammoth` pentru DOCX), iar agenții îl citesc cu `GET /api/cv?format=text`. **PDF-uri fără text** (tipărite ca imagine, scanate, „Print → Save as PDF” din macOS): dacă PDF-ul nu are text selectabil, serverul face automat OCR (`tesseract.js` + `@napi-rs/canvas`, română + engleză, primele 10 pagini, ~3 s/pagină). Modelele de limbă sunt în `server/tessdata/` (fără internet, fără pachete de sistem). OCR-ul poate greși diacriticele sau unele cuvinte, deci verifică „Textul pe care îl citesc agenții”. Originalul și textul sunt în `data/jobs.db`, deci intră în backup. CV-ul e protejat de Basic Auth, dacă e activ.
@@ -184,7 +184,7 @@ Dacă profilul are deja o secțiune `terminal:`, adaugi doar `env_passthrough` �
 **4. Dă-le instrucțiunile.** În `SOUL.md` (sau promptul) fiecărui agent pui că, înainte de fiecare rulare, citește `AGENTS-API.md` (secțiunea „Reguli comune” și secțiunea lui) și urmează exact pașii de acolo. Exemplu de paragraf:
 ```markdown
 ## Cum lucrezi
-Înainte de fiecare rulare citești `~/job-dashboard/AGENTS-API.md`: secțiunea „Reguli comune” și secțiunea „Vadim Sudor”.
+Înainte de fiecare rulare citești `~/job-finder-hermes-framework/AGENTS-API.md`: secțiunea „Reguli comune” și secțiunea „Vadim Sudor”.
 Urmezi exact pașii, endpoint-urile și câmpurile de acolo. Nu inventa endpoint-uri sau câmpuri.
 ```
 Pentru orchestrator, secțiunea e „Orchestrator”. Dacă agenții rulează pe alt calculator decât codul, copiază `AGENTS-API.md` acolo (agenții îl citesc ca fișier local). Exemplele din el folosesc `http://127.0.0.1:3333`: schimbă adresa dacă agenții nu rulează pe același server (preferabil printr-un tunel SSH, nu prin deschiderea portului în rețea).
@@ -209,7 +209,7 @@ hermes -p vadim -z 'Rulează în terminal: curl -s -o /dev/null -w "%{http_code}
 Serverul nu poate porni singur un agent Hermes (rulează sandbox-uit, ca alt utilizator, și nu are acces la profilurile Hermes). De aceea cererea se salvează în dashboard, iar un timer rulează pe contul în care rulează Hermes și o preia: la fiecare minut face un singur `GET /api/jobs/pending-cv?requested=1` și, doar dacă există o cerere, pornește `hermes -p tzanca`. Când nu e nicio cerere nu pornește niciun agent și nu consumă tokeni. Fiecare cerere se procesează cel mult o dată: dacă Tzanca eșuează, apeși din nou butonul (sau „Înapoi” și apoi „Marchează APPLY”).
 
 ```bash
-cd ~/job-dashboard && ./deploy/install-tzanca-runner.sh      # ca utilizatorul Hermes, fără sudo
+cd ~/job-finder-hermes-framework && ./deploy/install-tzanca-runner.sh      # ca utilizatorul Hermes, fără sudo
 systemctl --user list-timers job-dashboard-tzanca.timer      # starea timerului
 journalctl --user -u job-dashboard-tzanca -f                 # ce a rulat și ce a răspuns Tzanca
 ./deploy/install-tzanca-runner.sh --remove                   # dezinstalare
