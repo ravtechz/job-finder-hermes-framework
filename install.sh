@@ -43,22 +43,38 @@ if [ "$MODE" = prod ]; then
 fi
 
 # ---------- biblioteci pentru browserul agenților (Chromium al lui Hermes) ----------
-# Pe un server nou lipsesc, iar Chromium nu pornește ("exit code 127"): Durian nu poate deschide anunțurile.
+# Pe un server nou lipsesc, iar Chromium nu pornește ("exit code 127", ex. libatk-1.0.so.0): Durian nu poate deschide anunțurile.
 # Numele diferă între versiuni de Ubuntu/Debian (24.04 are sufixul t64), deci îl alegem pe cel care există.
 if [ "$MODE" = prod ] && [ "$BROWSER_LIBS" = 1 ] && command -v apt-get >/dev/null; then
   echo "==> Instalez bibliotecile de sistem pentru browserul agenților (sari peste cu --no-browser-libs)"
+  # un VPS proaspăt are lista de pachete goală: fără update, apt nu găsește nimic de instalat
+  S env DEBIAN_FRONTEND=noninteractive apt-get update -qq >/dev/null 2>&1 || echo "Atenție: apt-get update a eșuat; încerc cu lista de pachete existentă."
   PKGS=()
   for pair in "libatk1.0-0t64|libatk1.0-0" "libatk-bridge2.0-0t64|libatk-bridge2.0-0" "libcups2t64|libcups2" \
-              "libatspi2.0-0t64|libatspi2.0-0" "libxdamage1" "libcairo2" "libpango-1.0-0" "libasound2t64|libasound2"; do
+              "libatspi2.0-0t64|libatspi2.0-0" "libasound2t64|libasound2" "libxdamage1" "libcairo2" "libpango-1.0-0" \
+              "libnss3" "libnspr4" "libxkbcommon0" "libgbm1" "libxcomposite1" "libxrandr2" "libxfixes3" "libdrm2" \
+              "libx11-6" "libxext6" "libxcb1" "libdbus-1-3" "fonts-liberation"; do
     IFS='|' read -ra opts <<< "$pair"
     for p in "${opts[@]}"; do
       if apt-cache policy "$p" 2>/dev/null | grep -q 'Candidate: [^(]'; then PKGS+=("$p"); break; fi
     done
   done
   if [ "${#PKGS[@]}" -gt 0 ]; then
-    S env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${PKGS[@]}" >/dev/null \
-      || echo "Atenție: bibliotecile browserului nu s-au instalat. Durian va merge fără browser; le poți instala mai târziu manual (vezi README)."
+    LOG=$(mktemp)
+    S env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${PKGS[@]}" >"$LOG" 2>&1 \
+      || { tail -n 5 "$LOG"; echo "Atenție: bibliotecile browserului nu s-au instalat (eroarea de mai sus). Durian va merge fără browser; rulează manual: sudo apt-get install -y ${PKGS[*]}"; }
+    rm -f "$LOG"
+  else
+    echo "Atenție: apt nu găsește pachetele pentru browser. Rulează 'sudo apt-get update' și apoi ./install.sh din nou."
   fi
+  # dacă Chromium-ul lui Hermes există deja, verificăm că are tot ce-i trebuie
+  for b in "$HOME"/.hermes/tools/chromium-*/chrome-linux64/chrome; do
+    [ -x "$b" ] || continue
+    MISSING=$(ldd "$b" 2>/dev/null | awk '/not found/ {print $1}' | tr '\n' ' ')
+    if [ -n "$MISSING" ]; then echo "Atenție: Chromium-ul lui Hermes tot nu poate porni; lipsesc: $MISSING"
+    else echo "    Chromium-ul lui Hermes are toate bibliotecile necesare."; fi
+    break
+  done
 fi
 
 # ---------- dependențe + build (ca utilizator normal) ----------

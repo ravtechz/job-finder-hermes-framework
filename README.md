@@ -21,7 +21,7 @@ Apoi te conectezi ca `hermes` și instalezi Hermes și aplicația cu acest utili
 cd ~ && git clone https://github.com/ravtechz/job-finder-hermes-framework.git
 cd ~/job-finder-hermes-framework && ./install.sh
 ```
-Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat). Pe Ubuntu/Debian instalează și bibliotecile de sistem de care are nevoie browserul agenților (Chromium); fără ele Durian nu poate deschide anunțurile (`--no-browser-libs` le sare).
+Scriptul face tot: build, utilizator de sistem `jobdash`, cod în `/opt/job-dashboard`, serviciu systemd, backup zilnic, comanda `sudo jobdash` și chei noi pentru agenți. Te întreabă și dacă vrei o parolă pentru dashboard (recomandat). Pe Ubuntu/Debian instalează și bibliotecile de sistem de care are nevoie browserul agenților (Chromium); fără ele Durian nu poate deschide anunțurile (`--no-browser-libs` le sare). Dacă Durian raportează o bibliotecă lipsă (de exemplu `libatk-1.0.so.0`), rulează din nou `./install.sh`: reface lista de pachete (`apt-get update`) și verifică la final dacă Chromium-ul lui Hermes mai are ceva de instalat.
 
 **3. Acces din laptop:** aplicația ascultă doar pe `127.0.0.1:3333`, deci o deschizi printr-un tunel:
 ```bash
