@@ -56,7 +56,9 @@ if [ "$MODE" = prod ] && [ "$BROWSER_LIBS" = 1 ] && command -v apt-get >/dev/nul
               "libx11-6" "libxext6" "libxcb1" "libdbus-1-3" "fonts-liberation"; do
     IFS='|' read -ra opts <<< "$pair"
     for p in "${opts[@]}"; do
-      if apt-cache policy "$p" 2>/dev/null | grep -q 'Candidate: [^(]'; then PKGS+=("$p"); break; fi
+      # fără `grep -q` într-un pipe: sub `set -o pipefail` SIGPIPE-ul lui apt-cache face pachetul să pară inexistent
+      cand=$(apt-cache policy "$p" 2>/dev/null | awk '/Candidate:/ {print $2; exit}' || true)
+      if [ -n "$cand" ] && [ "$cand" != "(none)" ]; then PKGS+=("$p"); break; fi
     done
   done
   if [ "${#PKGS[@]}" -gt 0 ]; then
